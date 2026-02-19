@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { getHomeTabConfig, type HomeTabItem } from '@/lib/api/system';
+import { HomeTabConfigProvider } from '@/contexts/HomeTabConfigContext';
 import { JackpotPool } from './JackpotPool';
 import { JackpotPool2 } from './JackpotPool2';
 import { DecorativeBackground } from './DecorativeBackground';
@@ -10,52 +12,42 @@ import { SportsContent } from './SportsContent';
 import { LotteryContent } from './LotteryContent';
 import { GameContent } from './GameContent';
 
-export function NavigationTabs() {
-  const { t } = useLanguage();
-  const [activeTab, setActiveTab] = useState(0);
+const DEFAULT_TABS: HomeTabItem[] = [
+  { id: 0, key: 'tabRecommend', name: '推荐', icon: '/images/newimg/11.avif', activeIcon: '/images/newimg/zhu.avif', enabled: true, hasNew: false },
+  { id: 1, key: 'tabBaccarat', name: '百家乐', icon: '/images/newimg/zhu2.avif', activeIcon: '/images/newimg/6.avif', enabled: true, hasNew: false },
+  { id: 2, key: 'tabSports', name: '体育', icon: '/images/newimg/3.avif', activeIcon: '/images/newimg/7.avif', enabled: true, hasNew: false },
+  { id: 3, key: 'tabGame', name: '电游捕鱼', icon: '/images/newimg/8.avif', activeIcon: '/images/newimg/111.avif', enabled: true, hasNew: true },
+  { id: 4, key: 'tabLottery', name: '棋牌彩票', icon: '/images/newimg/10.avif', activeIcon: '/images/newimg/ll.avif', enabled: true, hasNew: false },
+];
 
-  const tabs = [
-    { 
-      nameKey: 'tabRecommend',
-      icon: '/images/newimg/11.avif',
-      activeIcon: '/images/newimg/zhu.avif',
-      hasNew: false 
-    },
-    { 
-      nameKey: 'tabBaccarat',
-      icon: '/images/newimg/zhu2.avif',
-      activeIcon: '/images/newimg/6.avif',
-      hasNew: false 
-    },
-    { 
-      nameKey: 'tabSports',
-      icon: '/images/newimg/3.avif',
-      activeIcon: '/images/newimg/7.avif',
-      hasNew: false 
-    },
-    { 
-      nameKey: 'tabGame',
-      icon: '/images/newimg/8.avif',
-      activeIcon: '/images/newimg/111.avif',
-      hasNew: true 
-    },
-    { 
-      nameKey: 'tabLottery',
-      icon: '/images/newimg/10.avif',
-      activeIcon: '/images/newimg/ll.avif',
-      hasNew: false 
-    },
-  ];
+export function NavigationTabs() {
+  useLanguage();
+  const [activeTab, setActiveTab] = useState(0);
+  const [tabConfig, setTabConfig] = useState<HomeTabItem[]>(DEFAULT_TABS);
+
+  useEffect(() => {
+    getHomeTabConfig().then((data) => {
+      if (data && data.length > 0) {
+        setTabConfig(data);
+        // 若当前激活的 tab 被禁用，重置到第一个启用的 tab
+        const enabledIds = data.filter(tab => tab.enabled).map(tab => tab.id);
+        setActiveTab(prev => enabledIds.includes(prev) ? prev : (enabledIds[0] ?? 0));
+      }
+    });
+  }, []);
+
+  // 只展示已启用的标签
+  const tabs = tabConfig.filter(tab => tab.enabled);
 
   return (
-    <>
+    <HomeTabConfigProvider tabs={tabConfig}>
       <div className="px-4 py-1" style={{ backgroundColor: '#151A23' }}>
         <div className="relative">
           {/* 背景高亮滑块 */}
           <div 
             className="absolute top-0 h-full transition-transform duration-300 ease-out"
             style={{
-              transform: `translateX(${activeTab * 100}%)`,
+              transform: `translateX(${tabs.findIndex(tab => tab.id === activeTab) * 100}%)`,
               width: `${100 / tabs.length}%`,
             }}
           >
@@ -71,12 +63,12 @@ export function NavigationTabs() {
 
           {/* 标签项 */}
           <div className="relative flex items-center justify-between">
-            {tabs.map((tab, index) => (
+            {tabs.map((tab) => (
               <button
-                key={index}
-                onClick={() => setActiveTab(index)}
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
                 className={`relative flex flex-col items-center justify-center gap-1 py-2 transition-all duration-200 ${
-                  activeTab === index ? 'scale-105' : 'scale-100'
+                  activeTab === tab.id ? 'scale-105' : 'scale-100'
                 }`}
                 style={{ width: `${100 / tabs.length}%` }}
               >
@@ -91,15 +83,13 @@ export function NavigationTabs() {
                   </div>
                 )}
 
-
                 {/* 图标 */}
                 <div style={{position:'relative'}} className="w-10 h-10 flex items-center justify-center mb-0.5">
-
                   <img 
-                    src={activeTab === index ? tab.activeIcon : tab.icon} 
-                    alt={t(tab.nameKey)}
+                    src={activeTab === tab.id ? tab.activeIcon : tab.icon} 
+                    alt={tab.name}
                     className={`w-full h-full object-contain transition-all ${
-                      activeTab === index ? 'brightness-110' : 'brightness-90'
+                      activeTab === tab.id ? 'brightness-110' : 'brightness-90'
                     }`}
                   />
                 </div>
@@ -107,12 +97,12 @@ export function NavigationTabs() {
                 {/* 文字 */}
                 <span 
                   className={`text-xs transition-colors ${
-                    activeTab === index 
+                    activeTab === tab.id 
                       ? 'text-amber-400' 
                       : 'text-zinc-400'
                   }`}
                 >
-                  {t(tab.nameKey)}
+                  {tab.name}
                 </span>
               </button>
             ))}
@@ -120,9 +110,8 @@ export function NavigationTabs() {
         </div>
       </div>
 
-      {/* 标签页内容 */}
+      {/* 标签页内容 —— 按固定 id 判断，与顺序/是否启用无关 */}
       {activeTab === 0 ? (
-        // K8推荐标签页
         <>
           <JackpotPool />
           <DecorativeBackground />
@@ -130,32 +119,27 @@ export function NavigationTabs() {
           <WeekRecommend />
         </>
       ) : activeTab === 1 ? (
-        // 百家乐标签页
         <>
           <JackpotPool />
           <DecorativeBackground />
           <BaccaratBanners />
         </>
       ) : activeTab === 2 ? (
-        // 体育标签页
         <>
           <SportsContent />
         </>
       ) : activeTab === 3 ? (
-        // 电游捕鱼标签页
         <>
           <JackpotPool2 />
           <GameContent />
         </>
       ) : activeTab === 4 ? (
-        // 彩票标签页
         <>
           <LotteryContent />
         </>
       ) : (
-        // 其他标签页
         <RecommendedGames />
       )}
-    </>
+    </HomeTabConfigProvider>
   );
 }

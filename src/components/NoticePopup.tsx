@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import styled, { keyframes } from 'styled-components';
-import { Mail, ChevronLeft, ChevronRight } from 'lucide-react';
+import styled from 'styled-components';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { getPopupNotice, type PopupNoticeItem } from '@/lib/api/system';
 
 const STORAGE_KEY = 'notice_popup_closed';
@@ -20,74 +20,36 @@ const Overlay = styled.div`
   background-color: rgba(0, 0, 0, 0.75);
 `;
 
-/* Card wrapper */
+/* Card wrapper — 去除深色卡片样式，改用毛玻璃容器 */
 const CardWrapper = styled.div`
   position: relative;
   width: 340px;
   max-width: min(92vw, 360px);
-  min-height: 400px;
-  max-height: min(480px, 75vh);
+  min-height: 260px;
+  max-height: min(360px, 60vh);
   display: flex;
   flex-direction: column;
-`;
-
-const spinGradient = keyframes`
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-`;
-
-const CardInner = styled.div`
-  position: relative;
-  width: 100%;
-  flex: 1;
-  min-height: 320px;
-  border-radius: 1rem;
+  border-radius: 1.25rem;
   overflow: hidden;
-  box-shadow: 0 0 60px rgba(139, 92, 246, 0.35), 0 20px 50px rgba(0, 0, 0, 0.6);
-`;
-
-const CardBorder = styled.div`
-  position: absolute;
-  inset: 0;
-  border-radius: 1rem;
-  padding: 2px;
-  background: conic-gradient(from 0deg, #7c3aed, #ec4899, #06b6d4, #7c3aed);
-  animation: ${spinGradient} 8s linear infinite;
-  & > div {
-    width: 100%;
-    height: 100%;
-    border-radius: calc(1rem - 2px);
-    background: #020617;
-  }
-`;
-
-const CardContent = styled.div`
-  position: absolute;
-  inset: 2px;
-  border-radius: calc(1rem - 2px);
-  background: linear-gradient(to bottom, #0f172a, rgba(46, 16, 101, 0.9), #020617);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 50%, rgba(255,255,255,0.05) 100%);
-    pointer-events: none;
-  }
+  backdrop-filter: blur(20px) saturate(1.6);
+  -webkit-backdrop-filter: blur(20px) saturate(1.6);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.1);
 `;
 
 const ContentArea = styled.div<{ $asImage?: boolean }>`
   position: relative;
   flex: 1;
   min-height: 0;
-  margin: 1rem 1rem 1rem;
-  border-radius: 0.5rem;
+  margin: 1rem;
+  border-radius: 0.75rem;
   overflow: hidden;
-  border: 1px solid rgba(139, 92, 246, 0.25);
-  box-shadow: inset 0 0 16px rgba(0,0,0,0.4);
-  background: linear-gradient(to bottom, rgba(15, 23, 42, 0.9), rgba(30, 27, 75, 0.85), rgba(15, 23, 42, 0.95));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
   display: flex;
   flex-direction: column;
   ${(p) => p.$asImage && 'align-items: center; justify-content: center; padding: 12px;'}
@@ -141,22 +103,81 @@ const CheckboxLabel = styled.label`
 `;
 
 const CloseBtn = styled.button`
-  width: 44px;
-  height: 44px;
+  position: relative;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   border: none;
-  background: linear-gradient(135deg, #a78bfa, #7c3aed);
-  color: #fff;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.95);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* 液态模糊玻璃底层 */
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    backdrop-filter: blur(16px) saturate(2);
+    -webkit-backdrop-filter: blur(16px) saturate(2);
+    background: radial-gradient(
+      ellipse at 35% 35%,
+      rgba(255, 255, 255, 0.28) 0%,
+      rgba(255, 255, 255, 0.10) 50%,
+      rgba(200, 180, 255, 0.08) 100%
+    );
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    box-shadow:
+      0 4px 20px rgba(0, 0, 0, 0.25),
+      0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+      inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    transition: background 0.25s, box-shadow 0.25s;
+  }
+
+  /* 高光折射层 */
+  &::after {
+    content: '';
+    position: absolute;
+    top: 6px;
+    left: 8px;
+    width: 14px;
+    height: 7px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.45);
+    filter: blur(3px);
+    opacity: 0.7;
+    pointer-events: none;
+  }
+
+  svg {
+    position: relative;
+    z-index: 1;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+  }
+
   &:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 16px rgba(124, 58, 237, 0.5);
+    transform: scale(1.1) rotate(5deg);
+    &::before {
+      background: radial-gradient(
+        ellipse at 35% 35%,
+        rgba(255, 255, 255, 0.38) 0%,
+        rgba(255, 255, 255, 0.18) 50%,
+        rgba(200, 180, 255, 0.12) 100%
+      );
+      box-shadow:
+        0 6px 28px rgba(0, 0, 0, 0.3),
+        0 0 0 1px rgba(255, 255, 255, 0.12) inset,
+        inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    }
+  }
+
+  &:active {
+    transform: scale(0.95);
   }
 `;
 
@@ -179,34 +200,6 @@ const NavBtn = styled.button<{ $left?: boolean }>`
   z-index: 10;
   transition: background 0.2s;
   &:hover { background: rgba(139, 92, 246, 0.8); }
-`;
-
-const Sidebar = styled.div`
-  width: 64px;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  padding: 12px 0;
-  gap: 4px;
-  border-right: 1px solid rgba(167, 139, 250, 0.2);
-`;
-
-const SidebarBtn = styled.button<{ $active?: boolean }>`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
-  margin: 0 8px;
-  border-radius: 8px;
-  border: none;
-  background: ${(p) => (p.$active ? 'rgba(139, 92, 246, 0.3)' : 'transparent')};
-  color: ${(p) => (p.$active ? '#c4b5fd' : 'rgba(255,255,255,0.7)')};
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  text-align: left;
-  justify-content: flex-start;
-  transition: background 0.2s, color 0.2s;
 `;
 
 function getTodayKey(): string {
@@ -289,15 +282,19 @@ export function NoticePopup() {
   if (loading || !visible || notices.length === 0) return null;
 
   const notice = notices[currentIndex];
-  const content = (notice.content || '').trim();
+  const rawContent = (notice.content || '').trim();
+  const content = rawContent.replace(/^<\s*\/?\s*p\s*\/?\s*>$/i, '').trim() || rawContent;
+  const hasContent = content.length > 0 && !/^<\s*\/?\s*\w+\s*\/?\s*>$/i.test(content);
   const isImageType = notice.popup_type === 'image';
   const imageSrc = isImageType ? (notice.popup_image || '').trim() : '';
   const showAsImage = isImageType && imageSrc ? true : isImageUrl(content);
+  const displayContent = hasContent ? content : '';
+  const displayTitle = (notice.title || '').trim() || '公告';
 
   const textStyle: React.CSSProperties = {
     fontFamily: notice.popup_font_family || 'system-ui, -apple-system, sans-serif',
     fontSize: notice.popup_font_size || '14px',
-    color: notice.popup_text_color || '#e9d5ff',
+    color: notice.popup_text_color || 'rgba(255, 255, 255, 0.92)',
     lineHeight: 1.7,
     whiteSpace: 'pre-wrap' as const,
     wordBreak: 'break-word' as const,
@@ -325,69 +322,35 @@ export function NoticePopup() {
 
   const cardContent = (
     <CardWrapper>
-      <CardInner>
-        <CardBorder>
-          <div />
-        </CardBorder>
-        <CardContent>
-            <ContentArea
-              $asImage={showAsImage}
-              style={{ cursor: notice.url ? 'pointer' : 'default' }}
-              onClick={notice.url ? handleContentClick : undefined}
-            >
-              {notices.length > 1 && (
-                <>
-                  <NavBtn $left type="button" onClick={(e) => { e.stopPropagation(); goPrev(); }} aria-label="上一条">
-                    <ChevronLeft size={20} />
-                  </NavBtn>
-                  <NavBtn type="button" onClick={(e) => { e.stopPropagation(); goNext(); }} aria-label="下一条">
-                    <ChevronRight size={20} />
-                  </NavBtn>
-                </>
-              )}
-              {showAsImage ? (
-                <NoticeImage src={imageSrc || content} alt={notice.title || '公告'} />
-              ) : notices.length > 1 ? (
-                <div style={{ display: 'flex', flex: 1, minHeight: 0, overflow: 'hidden' }}>
-                  <Sidebar>
-                    {notices.map((n, i) => (
-                      <SidebarBtn
-                        key={i}
-                        type="button"
-                        $active={i === currentIndex}
-                        onClick={() => setCurrentIndex(i)}
-                      >
-                        <Mail size={18} style={{ flexShrink: 0, color: i === currentIndex ? '#c4b5fd' : 'rgba(255,255,255,0.5)' }} />
-                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {n.title || `公告${i + 1}`}
-                        </span>
-                      </SidebarBtn>
-                    ))}
-                  </Sidebar>
-                  <ScrollContent>
-                    <div style={textStyle}>
-                      {content ? (
-                        <span dangerouslySetInnerHTML={{ __html: content }} />
-                      ) : (
-                        notice.title
-                      )}
-                    </div>
-                  </ScrollContent>
-                </div>
+      <ContentArea
+        $asImage={showAsImage}
+        style={{ cursor: notice.url ? 'pointer' : 'default', margin: '1rem' }}
+        onClick={notice.url ? handleContentClick : undefined}
+      >
+        {notices.length > 1 && (
+          <>
+            <NavBtn $left type="button" onClick={(e) => { e.stopPropagation(); goPrev(); }} aria-label="上一条">
+              <ChevronLeft size={20} />
+            </NavBtn>
+            <NavBtn type="button" onClick={(e) => { e.stopPropagation(); goNext(); }} aria-label="下一条">
+              <ChevronRight size={20} />
+            </NavBtn>
+          </>
+        )}
+        {showAsImage ? (
+          <NoticeImage src={imageSrc || content} alt={displayTitle} />
+        ) : (
+          <ScrollContent>
+            <div style={textStyle}>
+              {displayContent ? (
+                <span dangerouslySetInnerHTML={{ __html: displayContent }} />
               ) : (
-                <ScrollContent>
-                  <div style={textStyle}>
-                    {content ? (
-                      <span dangerouslySetInnerHTML={{ __html: content }} />
-                    ) : (
-                      notice.title
-                    )}
-                  </div>
-                </ScrollContent>
+                displayTitle
               )}
-            </ContentArea>
-          </CardContent>
-        </CardInner>
+            </div>
+          </ScrollContent>
+        )}
+      </ContentArea>
     </CardWrapper>
   );
 

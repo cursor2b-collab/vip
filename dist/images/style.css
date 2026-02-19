@@ -1,0 +1,881 @@
+@charset "UTF-8";
+body{
+	margin: 0 ;
+	/* min-width: 1200px; */
+	background: url(/static/image/bg.jpg) round;
+}
+body {
+    background: url(/static/image/bg123456.jpg) top center no-repeat !important;
+  }
+a{
+    text-decoration: none;	
+}
+.yellow{
+    color: #ffe064;	
+}
+.yellow2{
+	color: #fcd95e;
+}
+.yellow3{
+	color: #e4d493;
+}
+.center{
+	margin: 0 auto;
+}
+.h80{
+    height: 430px;
+}
+.h400{
+	height: 200px;
+}
+.h250{
+	height: 250px;	 
+}
+.redEnveBody{
+    width: 100%;
+    /*height: 100%;*/
+    position: relative;
+    overflow: hidden;
+    background: url(/static/image/guang.png) center top no-repeat,url(/static/image/guang2.png) center top no-repeat;	
+}
+.redEnveBody p{
+	margin:0 0;
+}
+.redEnveBodyToo{
+    width: 1200px;
+    margin: 0 auto;	
+}
+.redEnveBodyMain{
+/*     min-height: 3200px;	 */
+}
+.redEnveBodyTop .pen{
+    height: 200px;
+    position: relative;
+    z-index: 999;
+}
+.redEnveBodyTop .pen img{
+	width: 1200px;
+}
+.redEnveBodyTop .hongbao{
+	background: url(/static/image/hongbao.png);
+	position: absolute;
+    width: 220px;
+    height: 280px;
+    right: 10%;
+    top: 330px;
+    animation:hongbao 1s cubic-bezier(0.76, 0.01, 0.49, 0.03) 0s;
+    transition:all;
+}
+.redEnveBodyTop .jinbi{
+	background: url(/static/image/jinbi.png);
+	position: absolute;
+	width: 210px;
+    height: 190px;
+    right: -123px;
+    top: 585px;
+    animation:jinbi 1s ease-in-out 0s;
+    transition:all;
+}
+.redEnveBodyTop .jinbi2{
+	background: url(/static/image/jinbi2.png);
+	position: absolute;
+	width: 155px;
+    height: 150px;
+    left: 275px;
+    top: 540px;
+    animation:jinbi2 1s cubic-bezier(0.07, 0.94, 0.71, 1.07) 0s;
+    transition:all;
+}
+.redEnveBodyTop .jinbi3{
+	background: url(/static/image/jinbi3.png);
+	position: absolute;
+	width: 90px;
+    height: 96px;
+    left: -50px;
+    top: 440px;
+    animation:jinbi3 1s ease-in-out 0s;
+    transition:all;
+}
+.redEnveBodyTop .caidai{
+	background: url(/static/image/caidai.png);
+	position: absolute;
+	width: 135px;
+    height: 75px;
+    left: 220px;
+    top: 320px;
+    animation:caidai 1s cubic-bezier(0.07, 0.94, 0.71, 1.07) 0s;
+    transition:all;
+}
+
+.redEnveBodyTop .lcaidai{
+	background: url(/static/image/lcaidai.png);
+	position: absolute;
+	width: 176px;
+    height: 135px;
+    right: 28%;
+    top: 760px;
+    animation:lcaidai 1s cubic-bezier(0.07, 0.94, 0.71, 1.07) 0s;
+    transition:all;
+}
+
+
+.redEnveFont{
+    margin: 0 auto;
+    height: 115px;	
+    position: relative;
+    visibility: visible;
+    animation:smallToBig 0.5s ease-in-out 0s;
+    transition:all 0.5s;
+}
+.redEnveFont img{
+	width: 900px;
+    margin: -235px 0 0 300px;
+}
+.redEnveClock{
+	position: relative;
+    top: 5px;
+    height: 45px;
+    line-height: 45px;
+    margin: 0 auto;
+    padding:0;
+    background: url('/static/image/liangtiao.png')no-repeat center;
+	background-size: 100% 150%;
+}
+.redEnveClock2{
+	display: inline-block;
+	width: 160px;
+}
+.redEnveClock2 .clock{
+	float: left;
+}
+.redEnveClock img{
+	animation:clock 1s ease-in-out 0s;
+    transition:all 1s;
+}
+.redEnveClock div{
+    color: #ffe064;
+    position: relative;
+    font-weight: bold;
+    font-size: 22px;
+    margin: 0px 2px;
+    float:right;
+}
+.redEnveClock #ready,.redEnveClock #starting,.redEnveClock #red-packet-finish,.redEnveClock #finish{
+	float: left;
+	top: 0;
+} 
+.redEnveClock #red-packet-finish,.redEnveClock #finish{
+	margin-left:14px;
+}
+.redEnveTime{
+    width: 740px;
+    font-size: 30px;
+    margin: 0 auto;
+    color: #fff;
+    margin-top: 10px;	
+}
+.redEnveTime div.time{
+	font-size: 50px;	
+	font-weight: bold;
+}
+.redEnveTime div.time2{
+	margin-top: 20px;
+}
+.redEnveTime div.time span{
+    color: #d53e1d;
+    background-color: #fff;
+    padding: 7px 14px;
+    border-radius: 10px;
+    margin: 0 15px;	
+    box-shadow: rgb(116, 2, 0) 1px 2px 12px;
+}
+.redEnveTime div.time2 span{
+	padding: 8px 8px;
+    font-weight: bold;
+}
+.redEnveTime div.time2 span:nth-child(1){
+	margin-left: 34px;
+}
+.redEnveTime div.time2 span:nth-child(2){
+	margin-left: 90px;
+}
+.redEnveTime div.time2 span:nth-child(3){
+	margin-left: 245px;
+}
+.redEnveTime div.time2 span:nth-child(4){
+	margin-left: 96px;
+}
+
+.redEnveButtons{
+	background: url(/static/image/lijiqiang.png);
+	width: 414px;
+    height: 110px;
+    margin: 0 auto;
+	cursor: pointer;
+	transition: all 0.2s ease;	
+}
+.redEnveButtons:hover{
+    transform: scale(1.1);
+}
+.redEnveList{
+	background: url(/static/image/boder.png) round;
+    width: 1200px;
+    height: 450px;
+    margin-top: 340px;
+    margin: 0 auto;
+    position: relative;
+    animation:shang 10s ease-in-out 0s infinite;
+    transition:all 10s;
+}
+.redEnveList .redEnveListTop{
+    margin: 0 auto;
+    width: 620px;
+    height: 250px;
+    position: absolute;
+    left: -6px;
+    right: 0;
+    top: -205px;
+    background: url(/static/image/bandan.png) center bottom no-repeat;	
+}
+.redEnveList img{
+    position: absolute;
+    top: -197px;
+    left: 280px;
+    width: 620px;
+    z-index: 1;	
+}
+.redEnveList .marqueen{
+    position: relative;
+    height: 423px;
+    width: 1200px !important;	
+}
+.redEnveList .marqueen-up{
+	position: absolute;
+    height: 360px!important;
+    float: left;
+    width: 50%!important;
+    cursor: grab;
+    top:55px;
+}
+.redEnveList .marqueen-up.left{
+	left: 0;
+}
+.redEnveList .marqueen-up.right{
+	right: 0;
+}
+.redEnveList .marqueen .marqueen-up .yellow2{
+}
+.redEnveList .marqueen .marqueen-up .mMove{
+	width:100%;
+}
+.redEnveList .marqueen .marqueen-up p{
+	width:100%;
+	height: 35px;
+}
+.redEnveList .marqueen .marqueen-up p a{
+	float: left;
+    display: block;
+    width: 100%;
+    text-align: center;
+    color: #efe8e8;
+    font-size: 18px;
+}
+.redEnveList .marqueen .marqueen-up p span{
+	margin-left: 40px;
+}
+.redEnveList .marqueen .marqueen-table {
+    width: 360px;
+    margin: 0 auto;
+}
+.redEnveList .marqueen .marqueen-table td {
+    width: 33.3%;
+    text-align: center;
+    color: #efe8e8;
+    font-size: 18px;
+    height: 34px;
+}
+.redEnveList .marqueen .marqueen-table .mar-t1 {
+    text-align: right;
+}
+.redEnveList .marqueen .marqueen-table .mar-t3 {
+    text-align: left
+}
+.toddyTotal{
+    width: 520px;
+    margin:9px auto 24px;
+    font-size: 30px;
+    color: #ffe064;	
+}
+.toddyTotal p{
+	
+}
+.toddyTotal span{
+	
+}
+
+.receiveTimes{
+    width: 800px;
+    margin:9px auto 0;
+    font-size: 24px;
+    color: #fff;	
+}
+
+.currReceiveTimes{
+    width: 800px;
+    margin:9px auto 24px;
+    font-size: 22px;
+    color: #f5bfc1;	
+}
+
+.activityInfo{
+    position: relative;	
+}
+.activityInfo .activityTop{
+	background: url(/static/image/hdxq.png);
+	position: absolute;
+    width: 410px;
+    height: 90px;
+    margin: 0 auto;
+    left: 0px;
+    right: 0px;
+    top: -135px;
+}
+.activityInfo table{
+	width: 1200px;
+    /*height: 370px;*/
+    margin: 0 auto 20px;
+    text-align: center;
+    font-size: 18px;
+    border: 1px solid #f99289;;
+    border-right-width: 2px;
+    border-bottom-width: 2px;
+    border-radius: 20px;
+    border-collapse: separate;
+    border-spacing: 0;
+    color: #efe8e8;
+    background-color: #b0102a;
+}
+.activityInfo table tr:first-child,
+.activityInfo table tr:nth-child(1){
+    background-color: #e1525b;
+    color: #f3e77d;
+    font-weight: bold;
+}
+.activityInfo table td{
+	border-top: 1px solid #ff7777;
+    border-left: 1px solid #ff7777;
+    height: 60px;
+}
+.activityInfo .qwea {
+    border-radius: 0 0 0 17px;
+}
+.activityInfo .activityBot{
+    width: 1200px;
+    height: 100px;
+    margin: 0 auto;
+    color: #efe5e5;
+    font-size: 15px;	
+}
+.activityDes{
+    position: relative;	
+    z-index: 3;
+    background-color: rgba(105, 0, 10, 0.33);
+    border-radius: 20px;
+    margin-bottom: 100px;
+}
+.activityDes .activityDesTop{
+	background: url(/static/image/hdsm.png);
+	position: absolute;
+    width: 410px;
+    height: 90px;
+    margin: 0 auto;
+    left: 0px;
+    right: 0px;
+    top: -50px;
+}
+.activityDes .activityDesMain{
+	width: 1040px;
+    margin: 0 auto;
+    color: #efe5e5;
+    font-size: 15px;
+    padding: 71px 0 40px 50px;
+}
+.activityDes .activityDesMain p{
+    line-height: 50px;	
+}
+/* .activityDes .activityDesMain p span{
+    background: #ffd558;
+    color: #7b3838;
+    font-weight: bold;
+    width: 10px;
+    height: 10px;
+    margin: 0 7px;
+    padding: 0 6px;
+    border-radius: 50px;	
+} */
+.botLeft{
+	height: 800px;
+    position: absolute;
+    bottom: 0px;
+}   
+.botLeft img{
+	position: absolute;
+    width: 600px;
+    height: 800px;
+    left: 0px;
+    bottom: 0px;
+}
+.botright img{
+	position: absolute;
+    width: 700px;
+    height: 900px;
+    right: 0px;
+    bottom: 0px;
+    z-index: 2;   
+}
+
+.rightFloat{
+    position: absolute;
+    right: 0px !important;
+    top: 30%;	
+}
+
+.rightFloat a{
+	position: relative;
+    display: block;
+    width: 90px;
+    height: 90px;
+    border-radius: 10px 0px 0px 10px;	
+}
+
+.rightFloat .myRedEnves{
+	right:-90px;
+	background: rgba(0, 0, 0, 0.24) url(/static/image/myRedEnve.png) center center no-repeat;
+}
+
+.rightFloat .myService{
+	right:-90px;
+	background: rgba(0, 0, 0, 0.24)  url(/static/image/myService.png) center center no-repeat;
+    margin-top: 15px;
+}
+
+.rightFloat .currenTimePeriod{
+	font-size:16px;
+	width:180px;
+	height:100px;
+	color: #fcd7ab;
+	background: rgba(0, 0, 0, 0.24);
+    margin-top: 15px;
+    /*background-position: 110px 28px;*/
+}
+.rightFloat .currenTimePeriod .timePeriodTitle{
+	position: absolute;
+    display: block;
+    top: 30px;
+    left: 15px;
+}
+.rightFloat .currenTimePeriod .currenTime{
+	position: absolute;
+    display: block;
+    bottom: 20px;
+    left: 25px;
+}
+.rightFloat a:hover{
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+.close{
+	background: url(/static/image/tankuang_guanbi.svg) round;
+    display: block;
+    width: 30px;
+    height: 30px;
+    position: absolute;
+    bottom: -45px;
+    margin: 0 auto;
+    left: 0px;
+    right: 0px;
+    transition: all 0.2s ease-in-out 0s;
+}
+.close:hover{
+	transform: rotateZ(-90deg);
+}
+.interfaceLock{
+	display: none;	
+	position: fixed;
+	z-index: 999999;
+    width: 100%;
+    height: 100%;
+    top: 0px;
+    background: rgba(0, 0, 0, 0.58);
+}
+.divIndex{
+	z-index: 1000000;
+	position: fixed;
+}
+
+
+.bigFont{
+    font-size: 32px;	
+}
+
+.zhongjiang{
+    background: url(/static/image/zhongjiangla.png) round;
+    width: 250px;
+    height: 0px;
+    transform: translateY(-55%);
+    top: 50%;
+    left: 0px;
+    right: 0px;
+    margin: 0 auto;
+    padding: 370px 100px 200px 100px;
+}
+.qiangwan{
+    background: url(/static/image/qiangwan.png)round;
+    width: 250px;
+    height: 0px;
+    transform: translateY(-55%);
+    top: 50%;
+    left: 0px;
+    right: 0px;
+    margin: 0 auto;
+    padding: 320px 20px 180px 20px;
+}
+.weikaishi{
+    background: url(/static/image/weikaishi.png)round;
+    width: 250px;
+    height: 0px;
+    transform: translateY(-55%);
+    top: 50%;
+    left: 0px;
+    right: 0px;
+    margin: 0 auto;
+    padding: 320px 20px 180px 20px;
+}
+
+.henbaoqian{
+    background: url(/static/image/henbaoqian.png)round;
+    width: 280px;
+    height: 230px;
+    transform: translateY(-55%);
+    top: 50%;
+    left: 0px;
+    right: 0px;
+    margin: 0 auto;
+    padding: 316px 20px 0;
+}
+
+.divIndex p{
+    font-size: 20px;
+    text-align: center;
+    color: #fff;
+}
+.henbaoqian p{
+    text-align: left;
+    font-size: 20px;
+    line-height: 35px;
+    margin-top: 20px;
+    margin-bottom: 5px;
+}
+.myRedEnveBox{
+	font-size: 14px;
+    width: 580px;
+    height: 435px;
+    transform: translateY(-55%);
+    top: 50%;
+    left: 0px;
+    right: 0px;
+    margin: 0 auto;
+    padding-top: 44px;
+    background: url(/static/image/myRedEnveBox.png);
+}
+.myRedEnveBoxMain{
+	width: 480px;
+    height: 400px;
+    top: 18%;
+    left: 0px;
+    right: 0px;
+    margin: 0 auto;	
+}
+.myRedEnveBoxMain p{
+    font-size: 14px;
+    margin-top: 14px;	
+}
+.myRedEnveBoxMain>p>span:nth-child(1){
+    margin-right: 30px;
+}
+.myRedEnveBoxMain table{
+	width: 480px;
+	height: 315px;
+    margin: 0 auto;
+    text-align: center;
+    color: #efe8e8;
+    background-color: #b0102a;
+}
+.myRedEnveBoxMain .layui-table{
+	height: auto;
+}
+.myRedEnveBoxMain table tr:first-child td{
+	/*background-color: #9a0019;*/	
+}
+.myRedEnveBoxMain table td{
+	width: 50%;
+    background-color: #a5031d;
+}
+.myRedEnveBoxMain .page{
+	height: 18px;
+}
+.myRedEnveBoxMain .page .num span{
+	float: left;
+    display: block;
+    width: 26px;
+    height: 20px;
+    text-align: center;
+    color: #fff;
+    margin: 0 4px;
+    cursor: pointer;
+}
+.myRedEnveBoxMain .page .num span:hover,.myRedEnveBoxMain .page .num span.on{
+	background-color: #c74141;
+}
+.myRedEnveBoxMain .page a{
+    float: left;	
+    padding: 0 4px;
+    color: #fff;
+}
+.myRedEnveBoxMain .page div{
+    float: left;	
+}
+.myRedEnveBoxMain .page div:nth-child(1){
+    width: 65px;   
+}
+.myRedEnveBoxMain .page div:nth-child(2){
+	width: 240px;
+}
+.myRedEnveBoxMain .page div:nth-child(3){
+    width: 175px;
+    margin-top: -3px;
+}
+.myRedEnveBoxMain .page .pageOpt input{
+	background: rgba(0, 0, 0, 0);
+    border: 1px solid #fdfdfd;
+    width: 45px;
+    height: 25px;
+    border-radius: 3px;
+    color: #fff;
+    margin: 0 7px;
+    cursor: pointer;
+}
+.myRedEnveBoxMain .page .pageOpt input.pageNum{
+	height: 21px;
+    text-align: center;
+    cursor: initial;
+}
+/*****************************閸斻劎鏁鹃崠锟�********************/
+.smallToBig{
+	animation:smallToBig 0.5s ease-in-out 0s !important;
+    transition:all 0.5s !important;
+}
+
+
+@keyframes smallToBig{
+	0%{
+		transform: scale(0.0);
+	}
+	80%{
+		transform: scale(1.1);
+	}
+}
+
+
+@keyframes jinbi3{
+	0%{
+		left: 650px;
+    	top: 0px;
+	}
+	100%{
+		left: -50px;
+    	top: 440px;
+	}
+}
+
+
+@keyframes jinbi2{
+	0%{
+	    left: 677px;
+    	top: 1px;
+	}
+	100%{
+		left: 275px;
+    	top: 540px;
+	}
+}
+
+
+@keyframes jinbi{
+	0%{
+	    right: 425px;
+    	top: 0px;
+	}
+	100%{
+	    right: -123px;
+    	top: 585px;
+	}
+}
+
+
+@keyframes hongbao{
+	0%{
+		right: 580px;
+    	top: -163px;
+	}
+	100%{
+		right: 10%;
+    	top: 330px;
+	}
+}
+
+@keyframes caidai{
+	0%{
+		left: 577px;
+   	 	top: 0px;
+	}
+	100%{
+		left: 220px;
+    	top: 320px;
+	}
+}
+
+@keyframes lcaidai{
+	0%{
+		right: 750px;
+    	top: 0px;
+	}
+	100%{
+		right: 28%;
+    	top: 760px;
+	}
+}
+
+
+@keyframes clock{
+  from,
+  to {
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    -webkit-transform: rotate(-10deg);
+    transform: rotate(-10deg);
+  }
+
+  20%,
+  40%,
+  60%,
+  80% {
+    -webkit-transform: rotate(10deg);
+    transform: rotate(10deg);
+  }
+}
+
+@keyframes shang{
+	 from,
+     to {
+	    background: url(/static/image/boders.png) round;
+    }
+    
+     10%,
+	  30%,
+	  50%,
+	  70%,
+	  90% {
+	    background: url(/static/image/boder2.png) round;
+	  }
+	
+	  20%,
+	  40%,
+	  60%,
+	  80% {
+	    background: url(/static/image/boders.png) round;
+	  }
+}
+
+
+.layui-table thead tr{
+	background-color: #9a0019;
+}
+.layui-table{
+	border-collapse: separate;
+	border-spacing: 2px;
+}
+
+.layui-table-header .layui-table{
+	margin-bottom: -3px;
+	background-color: #b0102a;
+}
+.layui-table-page,.layui-table td,.layui-table th,.layui-table-view,.layui-table-header{
+	border: none;
+}
+.layui-laypage a,.layui-laypage .layui-laypage-skip{
+	color: #fff;
+}
+.layui-laypage button, .layui-laypage input{
+	background-color: transparent;
+	color: #fff;
+}
+.layui-laypage input:focus{
+	border-color:#fff!important;
+}
+.layui-table-page .layui-laypage span{
+	color: #fff;
+}
+.layui-table-page select{
+	border: 1px solid #fff;
+	background-color: transparent;
+	color: #fff;
+}
+.layui-table-page .layui-laypage span.layui-laypage-limits{
+	display: none;
+}
+.layui-table-page{
+	padding-top: 12px;
+}
+.layui-laypage a:hover{
+	background-color: #c74141;
+	color: #fff;
+}
+.layui-table-body{
+	height: 282px;
+	overflow: hidden;
+}
+.rules {
+    width: 140px;
+    height:40px;
+    border-radius: 20px;
+    background-color: #DA2326;
+    font-size: 20px;
+    color: #FFE064;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    letter-spacing: 1.43px;
+    cursor: pointer;
+    margin: 0 auto;
+    position: relative;
+    top: 40px;
+}
+.rules:hover {
+    opacity: 0.7;
+    transition: all 0.3s;
+}
+.layui-table-body .layui-none {
+    color: #D78290;
+}
+.layui-laypage-btn:hover {
+    background: #ffffff;
+    color: #AE0621;
+}

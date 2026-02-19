@@ -104,24 +104,28 @@ export interface PopupNoticeResponse {
   alert: PopupNoticeItem[];
 }
 
-/** 弹窗只拉「弹窗消息」：优先 PHP 后端 /api/v1/notices，取前几条作为弹窗 */
+/** 弹窗：优先 PHP 后端 /api/v1/notices，与首页滚动消息同源，管理后台添加的公告会显示在弹窗 */
 export const getPopupNotice = (): Promise<PopupNoticeResponse> => {
   if (usePhpBackend) {
     return phpGameClient
-      .get<{ code?: number; data?: Array<{ id?: number; title?: string; content?: string; time?: string }> }>('notices')
+      .get<{ code?: number; data?: any; list?: any[] }>('notices')
       .then((res: any) => {
-        const raw = res?.data ?? res?.list ?? [];
+        const raw =
+          (Array.isArray(res?.data) ? res.data : null) ??
+          (Array.isArray(res?.data?.list) ? res.data.list : null) ??
+          res?.list ??
+          [];
         const list = Array.isArray(raw) ? raw : [];
-        const alert: PopupNoticeItem[] = list.slice(0, 5).map((row: any) => ({
-          title: row.title ?? '',
+        const alert: PopupNoticeItem[] = list.slice(0, 20).map((row: any) => ({
+          title: row.title ?? row.name ?? '',
           content: row.content ?? '',
-          url: null,
-          popup_type: 'text' as const,
-          popup_image: null,
-          popup_font_family: null,
-          popup_font_size: null,
-          popup_text_color: null,
-          popup_bg_color: null
+          url: row.url ?? null,
+          popup_type: (row.popup_type ?? 'text') as const,
+          popup_image: row.popup_image ?? null,
+          popup_font_family: row.popup_font_family ?? null,
+          popup_font_size: row.popup_font_size ?? null,
+          popup_text_color: row.popup_text_color ?? null,
+          popup_bg_color: row.popup_bg_color ?? null
         }));
         return { code: 200, message: 'success', alert };
       })
@@ -297,5 +301,40 @@ export const getServiceUrl = (): Promise<ServiceUrlResponse> => {
       }
     };
   });
+};
+
+/** 百家乐等标签下的单个展示位 */
+export interface HomeTabBannerSlot {
+  platformCode: string;
+  coverImage: string;
+}
+
+/** 首页标签页配置项 */
+export interface HomeTabItem {
+  id: number;
+  key: string;
+  name: string;
+  icon: string;
+  activeIcon: string;
+  enabled: boolean;
+  hasNew: boolean;
+  /** 该标签页默认游戏平台 */
+  platformCode?: string;
+  /** 该标签页主封面图 */
+  coverImage?: string;
+  /** 百家乐标签专用：6 个展示位 */
+  bannerSlots?: HomeTabBannerSlot[];
+}
+
+/** 获取首页标签页配置（无需登录） */
+export const getHomeTabConfig = (): Promise<HomeTabItem[]> => {
+  return phpGameClient
+    .get<{ code?: number; data?: { tabs?: HomeTabItem[] }; tabs?: HomeTabItem[] }>('home-tab-config')
+    .then((res: any) => {
+      const tabs = res?.data?.tabs ?? res?.tabs ?? null;
+      if (Array.isArray(tabs) && tabs.length > 0) return tabs as HomeTabItem[];
+      return [];
+    })
+    .catch(() => []);
 };
 

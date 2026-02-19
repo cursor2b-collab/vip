@@ -178,7 +178,7 @@ export default function UserCenterPage() {
       // 如果 transall 失败，尝试转出常见平台（FB体育等）
       if (!transallSuccess) {
         console.log('🔄 尝试转出常见游戏平台余额...');
-        const commonPlatforms = ['FB', 'AG', 'BBIN', 'JDB', 'PG', 'OB', 'HG', 'SBO', 'IBC'];
+        const commonPlatforms = ['FB', 'AG', 'BBIN', 'JDB', 'PG', 'OB', 'crown', 'sa', 'saba'];
         let successCount = 0;
         let failCount = 0;
         

@@ -1,16 +1,19 @@
 import { useGames } from '@/contexts/GameContext';
+import { useHomeTabById } from '@/contexts/HomeTabConfigContext';
+import { getPlatformName } from '@/lib/platforms';
 import { openGame } from '@/utils/gameUtils';
 // import { openNewGame } from '@/utils/gameUtils';
 
 export function BaccaratBanners() {
   const { realbetList } = useGames();
+  const baccaratTab = useHomeTabById(1);
   
   // 静态广告图片（如果游戏列表为空，使用这些）
   // 使用imgix优化参数提高图片清晰度：w=宽度，q=质量，fit=适应模式，auto=format自动选择最佳格式
   const staticBanners = [
     {
       id: 1,
-      image: "https://cy-747263170.imgix.net/sucai23%20(11).png?w=800&q=90&fit=max&auto=format",
+      image: "/images/gaming/bgsx12png%20(2).png",
       alt: "欧博视讯",
       platformName: 'ALLBET',
       gameType: 1,
@@ -74,11 +77,11 @@ export function BaccaratBanners() {
     }
   ];
 
-  // 使用真实游戏数据，优先使用后台设置的封面图；固定位置：第3个=BBIN，第5个=WM视讯
+  // 使用真实游戏数据，优先使用后台设置的封面图；固定位置：第3个=BBIN，第5个=WM视讯；第1个固定为本地图
   const baseBanners = realbetList.length > 0 
     ? realbetList.slice(0, 8).map((game, index) => ({
         id: index + 1,
-        image: game.cover || staticBanners[index]?.image || '',
+        image: index === 0 ? '/images/gaming/bgsx12png%20(2).png' : (game.cover || staticBanners[index]?.image || ''),
         alt: game.name || `百家乐游戏${index + 1}`,
         platformName: game.platform_name,
         gameType: game.game_type || game.gameType || 1,
@@ -91,11 +94,36 @@ export function BaccaratBanners() {
   const bgBanner = baseBanners.find(b => b.platformName === 'BG') ?? staticBanners.find(b => b.platformName === 'BG') ?? baseBanners[4];
   const wmBanner = baseBanners.find(b => b.platformName === 'WM') ?? staticBanners.find(b => b.platformName === 'WM') ?? baseBanners[4];
   
-  const banners = baseBanners.slice(0, 6).map((b, i) => {
-    if (i === 2) return { ...bbinBanner, id: 3 };
-    if (i === 4) return { ...wmBanner, id: 5 };  // 第5位显示 WM视讯
-    return { ...b, id: i + 1 };
-  });
+  // 优先使用管理后台配置的 6 个展示位（游戏平台 + 封面图）
+  const configBanners =
+    baccaratTab?.bannerSlots?.length === 6
+      ? baccaratTab.bannerSlots.map((slot, i) => ({
+          id: i + 1,
+          image: slot.coverImage || staticBanners[i]?.image || '',
+          alt: getPlatformName(slot.platformCode) + '视讯',
+          platformName: (slot.platformCode || 'WL').toUpperCase(),
+          gameType: 1 as const,
+          gameCode: '0',
+        }))
+      : null;
+
+  // 固定位：1=本地图 2=DG 3=BBIN 4=BG 5=WM 6=EVO（无配置时使用）
+  const fixedBannerAt = (i: number) => {
+    if (i === 1) return { id: 2, image: '/images/gaming/bgsx12png%20(3).png', alt: 'DG视讯', platformName: 'DG', gameType: 1 as const, gameCode: '0' };
+    if (i === 3) return { id: 4, image: '/images/gaming/bgsx12png%20(1).png', alt: 'BG视讯', platformName: 'BG', gameType: 1 as const, gameCode: '0' };
+    if (i === 5) return { id: 6, image: '/images/newimg/058.webp', alt: 'EVO视讯', platformName: 'EVO', gameType: 1 as const, gameCode: '0' };
+    return null;
+  };
+
+  const banners =
+    configBanners ||
+    baseBanners.slice(0, 6).map((b, i) => {
+      const fixed = fixedBannerAt(i);
+      if (fixed) return { ...b, ...fixed };
+      if (i === 2) return { ...bbinBanner, id: 3 };
+      if (i === 4) return { ...wmBanner, id: 5 };
+      return { ...b, id: i + 1 };
+    });
 
   return (
     <>

@@ -60,7 +60,7 @@ export const DEFAULT_PLATFORMS: PlatformItem[] = [
   { code: 'rt', name: 'RT', type: 'slot' },
   { code: 'sa', name: '沙龙', type: 'live' },
   { code: 'saba', name: '沙巴', type: 'sport' },
-  { code: 'sbo', name: 'SBO', type: 'sport' },
+  { code: 'sa', name: 'SBO', type: 'sport' },
   { code: 'sexy', name: 'Sexy', type: 'live' },
   { code: 'sg', name: 'SG', type: 'slot' },
   { code: 'sgwin', name: '双赢', type: 'lottery' },

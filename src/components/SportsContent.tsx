@@ -9,13 +9,13 @@ export function SportsContent() {
   const sprotListData = [
         {
             "name": "沙巴体育",
-            "gameType": 5,
-            "game_type": 5,
+            "gameType": 4,
+            "game_type": 4,
             "game_code": 0,
             "mobile_pic": "/images/week/99e6f2f92958248fc84096bcc5723c47.png",
             "tags": "",
             "params":  {gameCode: '0', gameType: 5},
-            "platform_name": "IBC",
+            "platform_name": "saba",
             "weight": 999,
             "game_type_text": "体育",
             "game_type_cn_text": "体育"
@@ -35,13 +35,13 @@ export function SportsContent() {
         },
         {
             "name": "SBO体育",
-            "gameType": 5,
-            "game_type": 5,
+            "gameType": 4,
+            "game_type": 4,
             "game_code": 0,
             "mobile_pic": "/images/gaming/SBOTY.png",
             "tags": "",
-            "params":  {gameCode: '0', gameType: 5},
-            "platform_name": "SBO",
+            "params":  {gameCode: '0', gameType: 4},
+            "platform_name": "sa",
             "weight": 11,
             "game_type_text": "体育",
             "game_type_cn_text": "体育"
@@ -87,13 +87,13 @@ export function SportsContent() {
         },
         {
             "name": "皇冠体育",
-            "gameType": 5,
-            "game_type": 5,
+            "gameType": 4,
+            "game_type": 4,
             "game_code": 0,
             "mobile_pic": "/images/gaming/HGTY.png",
             "tags": "",
-            "params":  {gameCode: '0', gameType: 5},
-            "platform_name": "HG",
+            "params":  {gameCode: '0', gameType: 4},
+            "platform_name": "crown",
             "weight": 10,
             "game_type_text": "体育",
             "game_type_cn_text": "体育"
