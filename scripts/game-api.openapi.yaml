@@ -1,0 +1,268 @@
+  # 游戏接口 OpenAPI 3.0 - 导入 Apifox 后可直接调试
+# 导入：Apifox -> 项目设置 -> 导入数据 -> OpenAPI/Swagger -> 选择本文件
+# 环境变量：在 Apifox 环境中设置 bet_proxy_url、api_base_url（见 README-apifox.md）
+
+openapi: 3.0.3
+info:
+  title: 游戏接口 (Game API)
+  description: |
+    - bet-proxy：api-bet.net 代理，POST /api/bet-proxy，body 传 path + body
+    - 后端接口：需登录态，baseURL 为 VITE_API_URL 或 /api
+  version: 1.0.0
+
+servers:
+  - url: '{{bet_proxy_url}}'
+    description: bet-proxy 代理（如 https://api.amjsvip.cc）
+  - url: '{{api_base_url}}'
+    description: 业务后端 API（如 http://localhost:5173/api 或生产 /api）
+
+tags:
+  - name: bet-proxy
+    description: api-bet.net 代理（创建玩家、游戏链接、余额、转账等）
+  - name: game
+    description: 后端游戏相关（余额、转入转出、记录、类型等）
+
+paths:
+  # ---------- bet-proxy 统一入口 ----------
+  /api/bet-proxy:
+    post:
+      tags: [bet-proxy]
+      summary: bet-proxy 统一转发
+      description: |
+        转发到 api-bet.net，path 对应接口路径（如 server/create、server/gameUrl）。
+        验签由 bet-proxy 服务端完成，此处只需传 path 和 body。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [path]
+              properties:
+                path:
+                  type: string
+                  description: api-bet 路径，如 server/create, server/gameUrl, server/balance, server/transfer
+                  example: server/create
+                body:
+                  type: object
+                  description: 对应接口的请求体
+            examples:
+              create:
+                summary: 创建玩家
+                value:
+                  path: server/create
+                  body:
+                    playerId: testuser01
+                    platType: pg
+                    currency: CNY
+              gameUrl:
+                summary: 获取游戏链接
+                value:
+                  path: server/gameUrl
+                  body:
+                    playerId: testuser01
+                    platType: pg
+                    currency: CNY
+                    gameType: "2"
+                    ingress: device1
+                    gameCode: "1420892"
+              balance:
+                summary: 查询余额
+                value:
+                  path: server/balance
+                  body:
+                    playerId: testuser01
+                    platType: pg
+                    currency: CNY
+              transfer:
+                summary: 转账
+                value:
+                  path: server/transfer
+                  body:
+                    playerId: testuser01
+                    platType: pg
+                    currency: CNY
+                    type: "1"
+                    amount: "100"
+                    orderId: "order_001"
+      responses:
+        '200':
+          description: 成功或接口返回
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code: { type: number, example: 10000 }
+                  msg: { type: string }
+                  data: {}
+
+  # ---------- 后端游戏接口（需登录 Cookie/Token） ----------
+  /api/game/login:
+    get:
+      tags: [game]
+      summary: 登录游戏（旧后端）
+      parameters:
+        - name: lang
+          in: query
+          schema: { type: string, example: zh-CN }
+      responses:
+        '200':
+          description: 游戏登录信息
+
+  /api/game/balance:
+    post:
+      tags: [game]
+      summary: 游戏余额
+      parameters:
+        - name: lang
+          in: query
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                api_code: { type: string, description: 平台代码 }
+      responses:
+        '200':
+          description: 余额信息
+
+  /api/game/deposit:
+    post:
+      tags: [game]
+      summary: 转入游戏
+      parameters:
+        - name: lang
+          in: query
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                api_code: { type: string }
+                money: { type: number }
+      responses:
+        '200':
+          description: 转入结果
+
+  /api/game/withdrawal:
+    post:
+      tags: [game]
+      summary: 转出游戏
+      parameters:
+        - name: lang
+          in: query
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                api_code: { type: string }
+                money: { type: number }
+      responses:
+        '200':
+          description: 转出结果
+
+  /api/game/type:
+    post:
+      tags: [game]
+      summary: 游戏类型列表
+      parameters:
+        - name: lang
+          in: query
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: 类型列表
+
+  /api/game/record:
+    post:
+      tags: [game]
+      summary: 游戏记录
+      parameters:
+        - name: lang
+          in: query
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                page: { type: number }
+                limit: { type: number }
+                api_name: { type: string }
+                game_type: { type: number }
+      responses:
+        '200':
+          description: 记录列表
+
+  /api/game/api_money:
+    post:
+      tags: [game]
+      summary: 平台余额
+      parameters:
+        - name: lang
+          in: query
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                api_code: { type: string }
+      responses:
+        '200':
+          description: 平台余额信息
+
+  /api/games/web:
+    get:
+      tags: [game]
+      summary: 游戏 Web 列表
+      responses:
+        '200':
+          description: 游戏列表
+
+  /api/games/apis:
+    get:
+      tags: [game]
+      summary: 游戏 API 列表
+      parameters:
+        - name: gameType
+          in: query
+          required: true
+          schema: { type: integer, example: 3 }
+        - name: isMobile
+          in: query
+          schema: { type: integer, example: 1 }
+      responses:
+        '200':
+          description: API 列表
+
+  /api/games/lists:
+    get:
+      tags: [game]
+      summary: 游戏列表（按类型）
+      parameters:
+        - name: gameType
+          in: query
+          required: true
+          schema: { type: integer, example: 3 }
+        - name: isMobile
+          in: query
+          schema: { type: integer, example: 1 }
+      responses:
+        '200':
+          description: 游戏列表

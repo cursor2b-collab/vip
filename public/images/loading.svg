@@ -1,0 +1,77 @@
+<svg width="206px" height="172px" viewBox="0 0 206 172" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>loading</title>
+    <g id="loading" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <rect id="Rectangle" fill-opacity="0.65" fill="#FFFFFF" x="0" y="0" width="206" height="172" rx="10"/>
+        <rect id="Rectangle" fill="#3F4851" x="35" y="54" width="42" height="48" rx="10"/>
+        <rect id="Rectangle-Copy" fill="#3F4851" x="82" y="54" width="42" height="48" rx="10"/>
+        <rect id="Rectangle-Copy-2" fill="#3F4851" x="129" y="54" width="42" height="48" rx="10"/>
+        <line x1="169.5" y1="32.5" x2="169.5" y2="90.5" id="Line" stroke="#3F4851" stroke-width="3" stroke-linecap="square"/>
+        <circle class="circle" id="Oval" fill="#3F4851" cx="169.5" cy="26.5" r="6.5"/>
+        <text id="Loading" font-family="Arial-BoldMT, Arial" font-size="34" font-weight="bold" fill="#3F4851">
+            <tspan x="36.9008789" y="135">Loading</tspan>
+        </text>
+        <path class="water logo" d="M56,87.163369 C59.3137085,87.163369 62,84.4770774 62,81.163369 C62,78.95423 60,74.8997736 56,69 C52,74.8997736 50,78.95423 50,81.163369 C50,84.4770774 52.6862915,87.163369 56,87.163369 Z" id="Oval" fill="#FFFFFF"/>
+        <polygon class="diamond logo" id="Rectangle" fill="#FFFFFF" transform="translate(102.500000, 78.428932) rotate(-315.000000) translate(-102.500000, -78.428932) " points="96 71.9289322 106.87868 74.0502525 109 84.9289322 98.1213203 82.8076118"/>
+        <path class="heart logo" d="M148.6501,70 C151.218279,70 153.300199,72.0819205 153.300199,74.6500996 L153.3,74.699 L153.3499,74.6998009 C155.91808,74.6998009 158,76.7817214 158,79.3499004 C158,81.9180795 155.91808,84 153.3499,84 L144.049701,84 L144.049,83.95 L144,83.9502987 L144,74.6500996 C144,72.0819205 146.08192,70 148.6501,70 Z" id="Combined-Shape" fill="#FFFFFF" transform="translate(151.000000, 77.000000) rotate(-45.000000) translate(-151.000000, -77.000000) "/>
+    </g>
+    <style type="text/css">
+        @keyframes circle {
+            0% {
+                cy: 26.5;
+            }
+            10% {
+                cy: 30;
+            }
+            30% {
+                cy: 36;
+            }
+        }
+        @keyframes water {
+            50% {
+                opacity: 100%;
+            }
+            65% {
+                opacity: 60%;
+            }
+        }
+        @keyframes diamond {
+            60% {
+                opacity: 100%;
+            }
+            75% {
+                opacity: 60%;
+            }
+        }
+        @keyframes heart {
+            70% {
+                opacity: 100%;
+            }
+            85% {
+                opacity: 60%;
+            }
+        }
+        .circle {
+            animation-name: circle;
+            animation-duration: 1s;
+            animation-iteration-count: infinite;
+        }
+        .logo {
+            animation-iteration-count: infinite;
+        }
+        .water {
+            animation-name: water;
+            animation-duration: 1s;
+            animation-timing-function: ease-in-out;
+        }
+        .diamond {
+            animation-name: diamond;
+            animation-duration: 1s;
+            animation-timing-function: ease-in-out;
+        }
+        .heart {
+            animation-name: heart;
+            animation-duration: 1s;
+            animation-timing-function: ease-in-out;
+        }
+    </style>
+</svg>

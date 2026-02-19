@@ -1,0 +1,10 @@
+.vercel
+
+sync_config.jsonc
+node_modules
+supabase/新游戏接口文档.txt
+supabase/新游戏接口更新说明.md
+*.md
+*.txt
+*.sql
+*.php

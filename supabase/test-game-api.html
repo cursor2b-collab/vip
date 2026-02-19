@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新游戏接口测试工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 30px;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .config-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        
+        .config-section h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #555;
+            font-size: 14px;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            flex: 1;
+            min-width: 150px;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        .result-section {
+            margin-top: 30px;
+        }
+        
+        .result-section h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .result-box {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 15px;
+            max-height: 500px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .result-box.success {
+            background: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        
+        .result-box.error {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        
+        .result-box.info {
+            background: #d1ecf1;
+            border-color: #bee5eb;
+            color: #0c5460;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-left: 10px;
+        }
+        
+        .status-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .status-error {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .status-warning {
+            background: #ffc107;
+            color: #333;
+        }
+        
+        .test-item {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .test-item h3 {
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .test-item p {
+            color: #666;
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 新游戏接口测试工具</h1>
+        <p class="subtitle">测试新游戏接口 (API v2.15.2) 的各项功能</p>
+        
+        <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 15px; margin-bottom: 20px;">
+            <strong>⚠️ CORS 跨域问题解决方案：</strong>
+            <p style="margin: 10px 0 0 0; font-size: 14px; line-height: 1.6;">
+                当前访问地址：<code id="currentOrigin" style="background: #f8f9fa; padding: 2px 6px; border-radius: 3px;"></code><br><br>
+                <strong>已修复：</strong> 后端 CORS 配置已更新，已添加 <code>admin.xpj66666.com</code> 到允许列表<br>
+                <strong>如果仍有问题，请：</strong><br>
+                1. 清除浏览器缓存并刷新页面（Ctrl+F5）<br>
+                2. 检查后端服务器是否已重启并加载新的 CORS 配置<br>
+                3. 在浏览器控制台的 Network 标签查看具体的 CORS 错误信息<br>
+                4. 如果后端未重启，请联系后端管理员重启 Laravel 服务
+            </p>
+        </div>
+        
+        <div class="config-section">
+            <h2>⚙️ 配置</h2>
+            <div class="form-group">
+                <label>API 基础地址:</label>
+                <input type="text" id="apiBaseUrl" value="https://api.amjsvip.cc/api/game-api" placeholder="https://api.amjsvip.cc/api/game-api">
+            </div>
+            <div class="form-group">
+                <label>认证 Token (可选，会自动获取):</label>
+                <input type="text" id="authToken" placeholder="留空将自动创建token">
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>🧪 测试功能</h2>
+            
+            <div class="test-item">
+                <h3>1. 创建访问令牌</h3>
+                <p>获取新游戏接口的认证令牌</p>
+                <button class="btn-primary" onclick="testCreateToken()">测试创建Token</button>
+            </div>
+            
+            <div class="test-item">
+                <h3>2. 获取供应商列表</h3>
+                <p>获取所有可用的游戏供应商</p>
+                <button class="btn-primary" onclick="testGetVendors()">测试获取供应商列表</button>
+            </div>
+            
+            <div class="test-item">
+                <h3>3. 获取游戏列表</h3>
+                <p>根据供应商代码获取游戏列表</p>
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <input type="text" id="vendorCode" placeholder="供应商代码 (如: slot-pragmatic)" style="flex: 1;">
+                    <input type="text" id="gameLanguage" placeholder="语言代码 (如: zh)" value="zh" style="width: 100px;">
+                    <button class="btn-primary" onclick="testGetGames()">测试获取游戏列表</button>
+                </div>
+            </div>
+            
+            <div class="test-item">
+                <h3>4. 获取游戏启动URL</h3>
+                <p>获取游戏的启动链接</p>
+                <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
+                    <input type="text" id="launchVendorCode" placeholder="供应商代码" style="flex: 1; min-width: 150px;">
+                    <input type="text" id="launchGameCode" placeholder="游戏代码 (如: lobby)" style="flex: 1; min-width: 150px;">
+                    <input type="text" id="launchUserCode" placeholder="用户代码" style="flex: 1; min-width: 150px;">
+                    <input type="text" id="launchLanguage" placeholder="语言" value="zh" style="width: 100px;">
+                    <button class="btn-success" onclick="testGetLaunchUrl()">测试获取启动URL</button>
+                </div>
+            </div>
+            
+            <div class="test-item">
+                <h3>5. 获取游戏详情</h3>
+                <p>获取指定游戏的详细信息</p>
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <input type="text" id="detailVendorCode" placeholder="供应商代码" style="flex: 1;">
+                    <input type="text" id="detailGameCode" placeholder="游戏代码" style="flex: 1;">
+                    <button class="btn-primary" onclick="testGetGameDetail()">测试获取游戏详情</button>
+                </div>
+            </div>
+            
+            <div class="test-item">
+                <h3>6. 获取迷你游戏列表</h3>
+                <p>获取所有迷你游戏</p>
+                <button class="btn-primary" onclick="testGetMiniGames()">测试获取迷你游戏列表</button>
+            </div>
+            
+            <div class="button-group">
+                <button class="btn-secondary" onclick="clearResults()">清空结果</button>
+                <button class="btn-danger" onclick="clearToken()">清除Token</button>
+                <button class="btn-primary" onclick="testButtonClick()" style="background: #17a2b8;">测试按钮功能</button>
+            </div>
+        </div>
+        
+        <div class="result-section">
+            <h2>📊 测试结果 <span id="statusBadge"></span></h2>
+            <div id="resultBox" class="result-box">等待测试...</div>
+        </div>
+    </div>
+    
+    <script>
+        // 确保所有函数都在全局作用域
+        const API_BASE_URL_KEY = 'test_game_api_base_url';
+        const AUTH_TOKEN_KEY = 'test_game_api_token';
+        
+        // 调试：检查按钮点击
+        console.log('测试页面脚本已加载');
+        
+        // ========== 工具函数 ==========
+        function getApiBaseUrl() {
+            const input = document.getElementById('apiBaseUrl');
+            return input ? input.value || 'https://api.amjsvip.cc/api/game-api' : 'https://api.amjsvip.cc/api/game-api';
+        }
+        
+        function getAuthToken() {
+            const input = document.getElementById('authToken');
+            return input ? (input.value || localStorage.getItem(AUTH_TOKEN_KEY)) : localStorage.getItem(AUTH_TOKEN_KEY);
+        }
+        
+        function setAuthToken(token) {
+            const input = document.getElementById('authToken');
+            if (input) input.value = token;
+            localStorage.setItem(AUTH_TOKEN_KEY, token);
+        }
+        
+        function showResult(message, type = 'info') {
+            const resultBox = document.getElementById('resultBox');
+            const statusBadge = document.getElementById('statusBadge');
+            
+            if (!resultBox) {
+                console.error('resultBox元素未找到');
+                return;
+            }
+            
+            resultBox.className = 'result-box ' + type;
+            resultBox.textContent = message;
+            
+            // 更新状态徽章
+            if (statusBadge) {
+                statusBadge.innerHTML = '';
+                if (type === 'success') {
+                    statusBadge.innerHTML = '<span class="status-badge status-success">成功</span>';
+                } else if (type === 'error') {
+                    statusBadge.innerHTML = '<span class="status-badge status-error">失败</span>';
+                } else {
+                    statusBadge.innerHTML = '<span class="status-badge status-warning">进行中</span>';
+                }
+            }
+        }
+        
+        function formatResponse(data) {
+            return JSON.stringify(data, null, 2);
+        }
+        
+        async function makeRequest(endpoint, method = 'GET', data = null) {
+            const baseUrl = getApiBaseUrl();
+            const url = `${baseUrl}${endpoint}`;
+            const token = getAuthToken();
+            
+            const options = {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                },
+                mode: 'cors', // 明确指定CORS模式
+                credentials: 'omit' // 不发送cookies
+            };
+            
+            if (token) {
+                options.headers['Authorization'] = `Bearer ${token}`;
+            }
+            
+            if (data && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
+                options.body = JSON.stringify(data);
+            }
+            
+            try {
+                showResult(`请求中...\nURL: ${url}\n方法: ${method}\n${data ? '数据: ' + JSON.stringify(data, null, 2) : ''}\nToken: ${token ? '已设置' : '未设置'}`, 'info');
+                
+                const response = await fetch(url, options);
+                const contentType = response.headers.get('content-type');
+                
+                let result;
+                if (contentType && contentType.includes('application/json')) {
+                    result = await response.json();
+                } else {
+                    const text = await response.text();
+                    try {
+                        result = JSON.parse(text);
+                    } catch {
+                        result = { message: text, success: false };
+                    }
+                }
+                
+                if (response.ok) {
+                    showResult(`✅ 请求成功 (${response.status})\n\n响应数据:\n${formatResponse(result)}`, 'success');
+                    return result;
+                } else {
+                    showResult(`❌ 请求失败 (${response.status})\n\n错误信息:\n${formatResponse(result)}`, 'error');
+                    throw new Error(result.message || result.error || `HTTP ${response.status}`);
+                }
+            } catch (error) {
+                // 详细的错误处理
+                let errorMessage = `❌ 请求异常\n\n错误类型: ${error.name}\n错误消息: ${error.message}`;
+                
+                if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                    errorMessage += '\n\n可能的原因:\n';
+                    errorMessage += '1. CORS跨域问题 - 后端需要配置CORS头\n';
+                    errorMessage += '2. 网络连接问题 - 请检查网络连接\n';
+                    errorMessage += '3. URL不正确 - 请检查API地址是否正确\n';
+                    errorMessage += '4. 服务器未响应 - 请检查后端服务是否运行\n\n';
+                    errorMessage += `请求URL: ${url}\n`;
+                    errorMessage += `请求方法: ${method}\n`;
+                } else if (error.name === 'NetworkError' || error.message.includes('NetworkError')) {
+                    errorMessage += '\n\n网络错误，可能的原因:\n';
+                    errorMessage += '1. 后端服务器未运行或无法访问\n';
+                    errorMessage += '2. CORS策略阻止了请求\n';
+                    errorMessage += '3. 防火墙或代理阻止了请求\n';
+                    errorMessage += '4. SSL证书问题（HTTPS）\n\n';
+                    errorMessage += '建议:\n';
+                    errorMessage += '- 检查后端服务是否正常运行\n';
+                    errorMessage += '- 检查后端CORS配置\n';
+                    errorMessage += '- 尝试在浏览器开发者工具的Network标签查看详细错误\n';
+                }
+                
+                if (error.stack) {
+                    errorMessage += `\n堆栈信息:\n${error.stack}`;
+                }
+                
+                showResult(errorMessage, 'error');
+                throw error;
+            }
+        }
+        
+        // 将函数暴露到全局作用域
+        window.testCreateToken = async function() {
+            console.log('testCreateToken 被调用');
+            try {
+                showResult('正在创建访问令牌...\n\n注意：Token由后端自动创建和管理，这里通过调用供应商列表接口来测试连接。', 'info');
+                
+                // 注意：这里需要调用后端的token创建接口
+                // 由于token创建需要clientId和clientSecret，这些信息在后端
+                // 所以这里直接调用后端的代理接口来测试连接
+                const result = await makeRequest('/vendors/list', 'GET');
+                
+                // 如果请求成功，说明token已自动创建
+                showResult('✅ 连接成功！Token已由后端自动创建（通过后端代理）\n\n供应商列表响应:\n' + formatResponse(result), 'success');
+            } catch (error) {
+                let errorMsg = '❌ Token创建/连接失败\n\n错误: ' + error.message;
+                errorMsg += '\n\n排查步骤:\n';
+                errorMsg += '1. 检查后端服务是否运行: 访问 https://api.amjsvip.cc/api/game-api/vendors/list\n';
+                errorMsg += '2. 检查后端CORS配置是否正确\n';
+                errorMsg += '3. 检查浏览器控制台的Network标签查看详细错误\n';
+                errorMsg += '4. 如果使用本地开发，可能需要配置代理\n';
+                showResult(errorMsg, 'error');
+            }
+        };
+        
+        window.testGetVendors = async function() {
+            console.log('testGetVendors 被调用');
+            try {
+                const result = await makeRequest('/vendors/list', 'GET');
+                
+                if (result.success && result.message && Array.isArray(result.message)) {
+                    const vendors = result.message;
+                    let vendorList = '供应商列表:\n\n';
+                    vendors.forEach((vendor, index) => {
+                        vendorList += `${index + 1}. ${vendor.name} (${vendor.vendorCode})\n`;
+                        vendorList += `   类型: ${vendor.type === 1 ? '真人娱乐场' : vendor.type === 2 ? '老虎机' : '迷你游戏'}\n\n`;
+                    });
+                    showResult('✅ 获取供应商列表成功\n\n' + vendorList + '\n完整响应:\n' + formatResponse(result), 'success');
+                } else {
+                    showResult('⚠️ 响应格式异常\n\n' + formatResponse(result), 'error');
+                }
+            } catch (error) {
+                // 错误已在makeRequest中显示
+            }
+        };
+        
+        window.testGetGames = async function() {
+            console.log('testGetGames 被调用');
+            const vendorCode = document.getElementById('vendorCode').value.trim();
+            const language = document.getElementById('gameLanguage').value.trim() || 'zh';
+            
+            if (!vendorCode) {
+                showResult('❌ 请输入供应商代码', 'error');
+                return;
+            }
+            
+            try {
+                const result = await makeRequest('/games/list', 'POST', {
+                    vendorCode,
+                    language
+                });
+                
+                if (result.success && result.message && Array.isArray(result.message)) {
+                    const games = result.message;
+                    let gameList = `游戏列表 (${games.length} 个游戏):\n\n`;
+                    games.slice(0, 10).forEach((game, index) => {
+                        gameList += `${index + 1}. ${game.gameName} (${game.gameCode})\n`;
+                    });
+                    if (games.length > 10) {
+                        gameList += `\n... 还有 ${games.length - 10} 个游戏\n`;
+                    }
+                    showResult('✅ 获取游戏列表成功\n\n' + gameList + '\n完整响应:\n' + formatResponse(result), 'success');
+                } else {
+                    showResult('⚠️ 响应格式异常\n\n' + formatResponse(result), 'error');
+                }
+            } catch (error) {
+                // 错误已在makeRequest中显示
+            }
+        };
+        
+        window.testGetLaunchUrl = async function() {
+            console.log('testGetLaunchUrl 被调用');
+            const vendorCode = document.getElementById('launchVendorCode').value.trim();
+            const gameCode = document.getElementById('launchGameCode').value.trim();
+            const userCode = document.getElementById('launchUserCode').value.trim();
+            const language = document.getElementById('launchLanguage').value.trim() || 'zh';
+            
+            if (!vendorCode || !gameCode || !userCode) {
+                showResult('❌ 请填写所有必需字段：供应商代码、游戏代码、用户代码', 'error');
+                return;
+            }
+            
+            try {
+                const result = await makeRequest('/game/launch-url', 'POST', {
+                    vendorCode,
+                    gameCode,
+                    userCode,
+                    language
+                });
+                
+                if (result.success && result.message) {
+                    const gameUrl = result.message;
+                    showResult('✅ 获取游戏启动URL成功\n\n游戏URL:\n' + gameUrl + '\n\n完整响应:\n' + formatResponse(result) + '\n\n💡 提示: 可以复制上面的URL在浏览器中打开测试', 'success');
+                } else {
+                    showResult('⚠️ 响应格式异常\n\n' + formatResponse(result), 'error');
+                }
+            } catch (error) {
+                // 错误已在makeRequest中显示
+            }
+        };
+        
+        window.testGetGameDetail = async function() {
+            console.log('testGetGameDetail 被调用');
+            const vendorCode = document.getElementById('detailVendorCode').value.trim();
+            const gameCode = document.getElementById('detailGameCode').value.trim();
+            
+            if (!vendorCode || !gameCode) {
+                showResult('❌ 请填写供应商代码和游戏代码', 'error');
+                return;
+            }
+            
+            try {
+                const result = await makeRequest('/game/detail', 'POST', {
+                    vendorCode,
+                    gameCode
+                });
+                
+                if (result.success && result.message) {
+                    const game = result.message;
+                    let detail = `游戏详情:\n\n`;
+                    detail += `游戏名称: ${game.gameName}\n`;
+                    detail += `游戏代码: ${game.gameCode}\n`;
+                    detail += `供应商: ${game.vendorCode}\n`;
+                    detail += `提供商: ${game.provider}\n`;
+                    detail += `是否新游戏: ${game.isNew ? '是' : '否'}\n`;
+                    detail += `是否维护中: ${game.underMaintenance ? '是' : '否'}\n`;
+                    if (game.thumbnail) {
+                        detail += `缩略图: ${game.thumbnail}\n`;
+                    }
+                    showResult('✅ 获取游戏详情成功\n\n' + detail + '\n完整响应:\n' + formatResponse(result), 'success');
+                } else {
+                    showResult('⚠️ 响应格式异常\n\n' + formatResponse(result), 'error');
+                }
+            } catch (error) {
+                // 错误已在makeRequest中显示
+            }
+        };
+        
+        window.testGetMiniGames = async function() {
+            console.log('testGetMiniGames 被调用');
+            try {
+                const result = await makeRequest('/games/mini/list', 'GET');
+                
+                if (result.success && result.message && Array.isArray(result.message)) {
+                    const games = result.message;
+                    let gameList = `迷你游戏列表 (${games.length} 个游戏):\n\n`;
+                    games.forEach((game, index) => {
+                        gameList += `${index + 1}. ${game.gameName} (${game.gameCode})\n`;
+                    });
+                    showResult('✅ 获取迷你游戏列表成功\n\n' + gameList + '\n完整响应:\n' + formatResponse(result), 'success');
+                } else {
+                    showResult('⚠️ 响应格式异常\n\n' + formatResponse(result), 'error');
+                }
+            } catch (error) {
+                // 错误已在makeRequest中显示
+            }
+        }
+        
+        window.clearResults = function() {
+            console.log('clearResults 被调用');
+            showResult('等待测试...', 'info');
+            document.getElementById('statusBadge').innerHTML = '';
+        };
+        
+        window.clearToken = function() {
+            console.log('clearToken 被调用');
+            document.getElementById('authToken').value = '';
+            localStorage.removeItem(AUTH_TOKEN_KEY);
+            showResult('✅ Token已清除', 'success');
+        };
+        
+        window.testConnection = async function() {
+            console.log('testConnection 被调用');
+            try {
+                showResult('正在测试API连接...\n\n检查:\n1. API地址是否正确\n2. 服务器是否可访问\n3. CORS配置是否正确', 'info');
+                
+                const baseUrl = getApiBaseUrl();
+                
+                // 先测试简单的GET请求
+                const testUrl = baseUrl + '/vendors/list';
+                
+                showResult(`测试连接中...\nURL: ${testUrl}\n\n如果出现CORS错误，说明:\n1. 后端CORS未配置\n2. 需要使用代理\n3. 或直接在服务器上测试`, 'info');
+                
+                const result = await makeRequest('/vendors/list', 'GET');
+                
+                showResult('✅ 连接测试成功！\n\nAPI地址正确，服务器可访问，CORS配置正常。\n\n响应:\n' + formatResponse(result), 'success');
+            } catch (error) {
+                let errorMsg = '❌ 连接测试失败\n\n';
+                
+                if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                    errorMsg += '可能的原因:\n';
+                    errorMsg += '1. ❌ CORS跨域问题（最常见）\n';
+                    errorMsg += '   - 后端需要配置CORS头: Access-Control-Allow-Origin\n';
+                    errorMsg += '   - 或使用代理服务器\n\n';
+                    errorMsg += '2. ❌ 服务器未运行或无法访问\n';
+                    errorMsg += '   - 检查后端服务是否启动\n';
+                    errorMsg += '   - 检查防火墙设置\n\n';
+                    errorMsg += '3. ❌ URL地址不正确\n';
+                    errorMsg += '   - 检查API基础地址是否正确\n';
+                    errorMsg += '   - 尝试在浏览器直接访问: ' + getApiBaseUrl() + '/vendors/list\n\n';
+                    errorMsg += '解决方案:\n';
+                    errorMsg += '方案1: 配置后端CORS（推荐）\n';
+                    errorMsg += '  在Laravel的 config/cors.php 中添加:\n';
+                    errorMsg += '  "allowed_origins" => ["*"] 或 ["http://localhost:3000"]\n\n';
+                    errorMsg += '方案2: 使用代理\n';
+                    errorMsg += '  在 vite.config.ts 中配置代理\n\n';
+                    errorMsg += '方案3: 直接在服务器上测试\n';
+                    errorMsg += '  将HTML文件放到服务器上访问\n';
+                } else {
+                    errorMsg += '错误: ' + error.message;
+                }
+                
+                showResult(errorMsg, 'error');
+            }
+        };
+        
+        // 测试函数是否可用
+        window.testButtonClick = function() {
+            console.log('测试按钮点击功能正常！');
+            showResult('✅ JavaScript正常工作！\n\n所有函数已加载，按钮点击功能正常。', 'success');
+        };
+        
+        // ========== 初始化 ==========
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM已加载，开始初始化');
+            
+            // 显示当前访问地址
+            const currentOriginEl = document.getElementById('currentOrigin');
+            if (currentOriginEl) {
+                currentOriginEl.textContent = window.location.origin;
+            }
+            
+            const savedBaseUrl = localStorage.getItem(API_BASE_URL_KEY);
+            const savedToken = localStorage.getItem(AUTH_TOKEN_KEY);
+            
+            const apiBaseUrlInput = document.getElementById('apiBaseUrl');
+            const authTokenInput = document.getElementById('authToken');
+            
+            if (apiBaseUrlInput && savedBaseUrl) {
+                apiBaseUrlInput.value = savedBaseUrl;
+            }
+            if (authTokenInput && savedToken) {
+                authTokenInput.value = savedToken;
+            }
+            
+            // 保存配置变化
+            if (apiBaseUrlInput) {
+                apiBaseUrlInput.addEventListener('change', function() {
+                    localStorage.setItem(API_BASE_URL_KEY, this.value);
+                });
+            }
+            
+            if (authTokenInput) {
+                authTokenInput.addEventListener('change', function() {
+                    if (this.value) {
+                        localStorage.setItem(AUTH_TOKEN_KEY, this.value);
+                    } else {
+                        localStorage.removeItem(AUTH_TOKEN_KEY);
+                    }
+                });
+            }
+            
+            console.log('所有函数已定义:', {
+                testCreateToken: typeof window.testCreateToken,
+                testGetVendors: typeof window.testGetVendors,
+                testGetGames: typeof window.testGetGames,
+                testGetLaunchUrl: typeof window.testGetLaunchUrl,
+                testGetGameDetail: typeof window.testGetGameDetail,
+                testGetMiniGames: typeof window.testGetMiniGames,
+                clearResults: typeof window.clearResults,
+                clearToken: typeof window.clearToken,
+                testConnection: typeof window.testConnection,
+                testButtonClick: typeof window.testButtonClick
+            });
+            
+            console.log('当前访问地址:', window.location.origin);
+            console.log('API地址:', getApiBaseUrl());
+        });
+    </script>
+</body>
+</html>

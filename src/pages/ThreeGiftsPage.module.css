@@ -1,0 +1,342 @@
+/* PC 端全视口背景层：铺满网页，仅 701px 以上生效 */
+.pageBg {
+  display: none;
+}
+
+/* 天生赢家 一触即发 - 使用 em，父级 font-size 为 100px 时 1em = 100px，与原版 rem 一致 */
+.root {
+  display: block;
+  min-height: 100vh;
+  height: auto;
+  overflow: visible;
+  background-color: #371D1C;
+  padding-bottom: 100px; /* 留出底部空间，避免被固定按钮挡住 */
+}
+
+
+/* 内容区缩放根：原版 700px 以下 100px，320 以下 85px，701+ 140px */
+.scaleRoot {
+  font-size: 100px;
+}
+@media (max-width: 320px) {
+  .scaleRoot {
+    font-size: 85px;
+  }
+}
+@media (min-width: 701px) {
+  .scaleRoot {
+    font-size: 140px;
+  }
+}
+
+/* 主容器：与原版一致，背景在 .root 上 */
+.threeGifts {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 4.15em;
+  padding-bottom: 0.8em;
+  position: relative;
+  box-sizing: border-box;
+  min-height: auto;
+  overflow: visible;
+}
+
+.promoList {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0; /* 不压缩，保证高度由内容撑开 */
+}
+
+/* 活动主区块 */
+.promoMotivation {
+  width: 3.45em;
+  max-width: 92%;
+  background-repeat: no-repeat;
+  background-size: 100%;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 0;
+}
+
+.ACTIVITY {
+  min-height: 5.2em;
+  height: auto;
+  padding: 0.3745em 0.15em 0;
+  background-repeat: no-repeat;
+  background-size: 100% auto;
+  box-sizing: border-box;
+}
+
+/* PC 端：活动卡片固定宽高比，内容严格限制在卡片内不溢出 */
+@media (min-width: 701px) {
+  .pageBg {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    background-position: 0 0;
+    background-color: #371D1C;
+  }
+
+  .root {
+    background-color: transparent;
+    background-image: none;
+    height: 100vh;
+    max-height: 100vh;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-bottom: 0;
+  }
+
+  .promoMotivation.ACTIVITY {
+    aspect-ratio: 345 / 520;
+    min-height: 5.2em;
+    padding: 0.3745em 0.15em 0;
+    overflow: hidden; /* 防止内容跑出卡片 */
+  }
+
+  .giftIntroduce {
+    position: absolute;
+    top: -1.5%;
+    left: 0.06em;
+    right: 0.15em;
+    bottom: 0;
+    overflow: hidden;
+  }
+
+  .giftItem {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 33.33%;  /* PC 端放大，三档均分满高 */
+    margin: 0;
+    box-sizing: border-box;
+  }
+
+  .giftItem:nth-child(1) {
+    top: 0;
+  }
+
+  .giftItem:nth-child(2) {
+    top: 33.33%;
+  }
+
+  .giftItem:nth-child(3) {
+    top: 64.5%;   /* 尊贵档向上移一点点 */
+  }
+
+  /* PC 端图片：放大至填满格子，object-fit 保证不超出背景卡片 */
+  .giftItem .giftImg img {
+    transform: scale(1);
+    transform-origin: left center;
+  }
+
+  .giftIntroduce .btnGroupWrap {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  /* PC 端规则区继续向上移（提高选择器优先级以免被后面全局样式覆盖） */
+  .threeGifts .threeGiftsRule {
+    margin-top: -0.6em;
+  }
+}
+
+.slogan {
+  font-size: 0.14em;
+  color: #fbf0ce;
+  position: absolute;
+  top: 0.12em;
+  right: 0.27em;
+}
+
+.giftIntroduce {
+  position: relative;
+  width: 100%;
+}
+
+.giftItem {
+  width: 100%;
+  height: 1.29em;
+  position: relative;
+}
+
+.giftItem:not(:last-child) {
+  margin-bottom: 0.1em;
+}
+
+.giftImg {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  border-radius: 0;
+}
+
+.giftImg img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: left center;
+  display: block;
+}
+
+.percentWrap {
+  width: 1.2em;
+  height: 1.04em;
+  position: absolute;
+  top: 0.27em;
+  left: 0.02em;
+  z-index: 1;
+}
+
+.percentWrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.btnGroupWrap {
+  width: 1.61em;
+  height: 0.5em;
+  margin: 0.11em auto 0;
+}
+
+/* 规则区：与 promoList 平级，规则图 + 文案在图片内 */
+.threeGiftsRule {
+  width: 3.45em;
+  max-width: 92%;
+  min-height: 3.32em;
+  margin-top: -0.28em; /* 向上移 */
+  padding: 0.42em 0.28em 0.38em 0.12em;
+  box-sizing: border-box;
+  background-repeat: no-repeat;
+  background-size: 100% auto;
+  background-position: top center;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 0.13em;
+  color: #fbf0ce;
+  line-height: 1.55;
+}
+
+.listItem {
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  flex-direction: row;
+  gap: 0.1em;
+  line-height: 1.55;
+  margin-bottom: 0.12em;
+}
+
+.listItem:last-child {
+  margin-bottom: 0;
+}
+
+.num {
+  width: 0.22em;
+  flex-shrink: 0;
+  margin-right: 0.24em;
+}
+
+.qaWrap {
+  position: relative;
+  display: inline;
+  vertical-align: middle;
+}
+
+.qaIcon {
+  width: 0.14em;
+  height: 0.14em;
+  margin-left: 0.02em;
+  vertical-align: middle;
+  cursor: pointer;
+}
+
+.qaContent {
+  display: none;
+  position: absolute;
+  left: 0;
+  bottom: 100%;
+  margin-bottom: 0.08em;
+  padding: 0.1em 0.12em;
+  min-width: 2.8em;
+  max-width: 3em;
+  font-size: 0.95em;
+  line-height: 1.4;
+  background: rgba(0, 0, 0, 0.85);
+  color: #fbf0ce;
+  border-radius: 0.06em;
+  z-index: 2;
+  white-space: normal;
+}
+
+.qaWrap:hover .qaContent,
+.qaWrap:focus-within .qaContent {
+  display: block;
+}
+
+/* 底部固定按钮（本页无底部导航，贴底） */
+.btnGroupFixed {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 3.45em;
+  max-width: calc(100% - 30px);
+  height: 0.7em;
+  pointer-events: none;
+}
+
+.btnGroup {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.btnGroup img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.btnGroup button {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+/* PC 端：立即存款按钮固定到视口底部 */
+@media (min-width: 701px) {
+  .root .btnGroupFixed {
+    bottom: 0;
+  }
+}
