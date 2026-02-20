@@ -645,15 +645,15 @@ export default function BankCardPage() {
                 </div>
               )}
 
-              {/* 提款密码 */}
+              {/* 输入交易密码（注册时已设置，此处仅验证） */}
               <div style={{ marginBottom: '20px' }}>
                 <label style={{ display: 'block', marginBottom: '10px', fontSize: '14px', color: '#fff', fontWeight: '500' }}>
-                  {t('confirmWithdrawPassword')}
+                  {t('withdrawPassword')}
                 </label>
                 <input
                   type="password"
                   value={formData.qk_pwd}
-                  onChange={(e) => setFormData({ ...formData, qk_pwd: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, qk_pwd: e.target.value.replace(/\D/g, '').slice(0, 6) })}
                   placeholder={t('enterWithdrawPassword6')}
                   maxLength={6}
                   inputMode="numeric"
@@ -804,7 +804,7 @@ export default function BankCardPage() {
                 style={{
                   background: isVirtual
                     ? `url('/images/newimg/usdt.avif') center/contain no-repeat, rgba(255, 255, 255, 0.05)`
-                    : 'rgba(255, 255, 255, 0.05)',
+                    : `url('/images/bitoll_bg.6e2b6b5f.png') center/cover no-repeat`,
                   borderRadius: '12px',
                   padding: '25px 20px',
                   marginBottom: '15px',
@@ -844,8 +844,9 @@ export default function BankCardPage() {
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            setShowSetPasswordStep(true);
-            setSetPasswordForm({ qk_pwd: '', qk_pwd_confirmation: '' });
+            setShowAddForm(true);
+            setEditingBank(null);
+            setFormData({ bank_name: '', bank_no: '', bank_owner: '', bank_address: '', wallet_type: '', qk_pwd: '' });
           }}
           style={{
             width: '100%',

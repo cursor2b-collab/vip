@@ -4,6 +4,9 @@
 import React, { useState, useEffect } from 'react';
 import { getServiceUrl } from '@/lib/api/system';
 
+/** 默认在线客服链接（im-service 部署地址） */
+const DEFAULT_SERVICE_URL = 'https://iridescent-faun-faf709.netlify.app/';
+
 interface FAQItem {
   question: string;
   answer: string;
@@ -12,7 +15,7 @@ interface FAQItem {
 
 export default function ServicePage() {
   const [servicePhone] = useState('4008426138');
-  const [serviceUrl, setServiceUrl] = useState('');
+  const [serviceUrl, setServiceUrl] = useState(DEFAULT_SERVICE_URL);
   const [kefuqq, setKefuqq] = useState('');
   const [faqList, setFaqList] = useState<FAQItem[]>([
     {
@@ -45,7 +48,7 @@ export default function ServicePage() {
   useEffect(() => {
     getServiceUrl().then(res => {
       if (res.code === 200) {
-        setServiceUrl(res.data?.url || '');
+        setServiceUrl(res.data?.url || DEFAULT_SERVICE_URL);
         setKefuqq(res.data?.kefuqq || '');
       }
     }).catch(() => {});
@@ -82,10 +85,10 @@ export default function ServicePage() {
       open(serviceUrl);
     } else {
       getServiceUrl().then(res => {
-        const url = res.data?.url || '';
+        const url = res.data?.url || DEFAULT_SERVICE_URL;
         if (url) { setServiceUrl(url); open(url); }
-        else { alert('暂无在线客服，请通过QQ或电话联系我们'); }
-      }).catch(() => { alert('暂无在线客服，请通过QQ或电话联系我们'); });
+        else { open(DEFAULT_SERVICE_URL); }
+      }).catch(() => { open(DEFAULT_SERVICE_URL); });
     }
   };
 

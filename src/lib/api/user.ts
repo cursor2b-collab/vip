@@ -1,8 +1,7 @@
 /**
- * 用户相关API
+ * 用户相关API（VIP 等级统一走 houduan：level-rewards/configs + level-rewards）
  */
 import phpGameClient from './php-game-client';
-import { supabase, SUPABASE_TABLES } from '@/lib/supabase';
 
 /** 晋升条件类型：1=存款额达标 2=投注额达标 3=任一个达标 4=所有达标 */
 export interface VipLevel {
@@ -91,82 +90,92 @@ function conditionTypeToLevelupType(v: string | undefined): number {
   return map[String(v || 'any').toLowerCase()] ?? 3;
 }
 
-// 从 Supabase level_reward_config 映射为 VipLevel（与 /member/vips 结构一致）
+const DEFAULT_VIP_INFO_DATA: VipInfoResponse['data'] = {
+  levels: [],
+  total_bet: 0,
+  total_deposit: 0,
+  levelup_types: {},
+  member_levels: { level_bonus: 0, day_bonus: 0, week_bonus: 0, month_bonus: 0, year_bonus: 0, birthday_bonus: 0, credit_bonus: 0 }
+};
+
+function defaultVipInfoResponse(code: number, message: string): VipInfoResponse {
+  return { code, message, data: DEFAULT_VIP_INFO_DATA };
+}
+
+// 从 houduan level-rewards/configs 或其它后端返回映射为 VipLevel（支持 camelCase）
 function mapLevelConfigToVipLevel(r: any): VipLevel {
   return {
-    level: Number(r.level_id ?? 0),
-    level_name: String(r.level_name ?? ''),
-    level_icon: r.level_icon ? String(r.level_icon).trim() : undefined,
-    deposit_money: Number(r.promote_deposit ?? 0),
-    bet_money: Number(r.promote_bet ?? r.required_points ?? 0),
-    level_bonus: Number(r.reward_amount ?? 0),
-    day_bonus: Number(r.daily_bonus ?? 0),
-    week_bonus: Number(r.week_bonus ?? 0),
-    month_bonus: Number(r.month_bonus ?? 0),
+    level: Number(r.level_id ?? r.levelId ?? r.level ?? 0),
+    level_name: String(r.level_name ?? r.levelName ?? r.name ?? ''),
+    level_icon: (r.level_icon ?? r.level_icon_url) ? String(r.level_icon ?? r.level_icon_url).trim() : undefined,
+    deposit_money: Number(r.promote_deposit ?? r.deposit_money ?? 0),
+    bet_money: Number(r.cumulativeRequired ?? r.cumulative_required ?? r.promote_bet ?? r.required_points ?? r.requiredPoints ?? r.bet_money ?? 0),
+    level_bonus: Number(r.reward_amount ?? r.rewardAmount ?? r.level_bonus ?? 0),
+    day_bonus: Number(r.daily_bonus ?? r.day_bonus ?? 0),
+    week_bonus: Number(r.week_bonus ?? r.weeklyBonus ?? r.weekly_bonus ?? 0),
+    month_bonus: Number(r.month_bonus ?? r.monthlyBonus ?? r.monthly_bonus ?? 0),
     year_bonus: Number(r.year_bonus ?? 0),
     birthday_bonus: Number(r.birthday_bonus ?? 0),
-    credit_bonus: Number(r.borrow_limit_reward ?? 0),
-    levelup_type: conditionTypeToLevelupType(r.condition_type),
-    lang: String(r.lang_currency ?? 'zh_cn')
+    credit_bonus: Number(r.borrow_limit_reward ?? r.credit_bonus ?? 0),
+    levelup_type: conditionTypeToLevelupType(r.condition_type ?? r.levelup_type),
+    lang: String(r.lang_currency ?? r.lang ?? 'zh_cn')
   };
 }
 
-async function getVipInfoFromSupabase(): Promise<VipInfoResponse> {
-  const { data: rows, error } = await supabase
-    .from(SUPABASE_TABLES.level_reward_config)
-    .select('*')
-    .eq('is_enabled', 1)
-    .order('sort_order', { ascending: true });
-  if (error) return { code: 500, message: error.message, data: { levels: [], total_bet: 0, total_deposit: 0, levelup_types: {}, member_levels: { level_bonus: 0, day_bonus: 0, week_bonus: 0, month_bonus: 0, year_bonus: 0, birthday_bonus: 0, credit_bonus: 0 } } };
-  const levels: VipLevel[] = (rows ?? []).map(mapLevelConfigToVipLevel);
-  const firstLevel = levels[0];
-
-  let total_bet = 0;
-  let total_deposit = 0;
-  const { data: { session } } = await supabase.auth.getSession();
-  if (session?.user?.id) {
-    const { data: profile } = await supabase
-      .from(SUPABASE_TABLES.profiles)
-      .select('total_deposit, total_bet')
-      .eq('id', session.user.id)
-      .maybeSingle();
-    if (profile) {
-      total_deposit = Number(profile.total_deposit ?? 0) || 0;
-      total_bet = Number(profile.total_bet ?? 0) || 0;
-    }
-  }
-
+/** 从 houduan 获取 VIP 信息：level-rewards/configs（等级配置）+ level-rewards（用户投注额，需登录） */
+async function getVipInfoFromHouduan(): Promise<VipInfoResponse> {
   const levelupTypes: Record<number, string> = { 1: '存款额达标', 2: '投注额达标', 3: '任一个达标', 4: '所有达标' };
-  return {
-    code: 200,
-    message: '',
-    data: {
-      levels,
-      total_bet,
-      total_deposit,
-      levelup_types: levelupTypes,
-      member_levels: firstLevel ? {
-        level_bonus: firstLevel.level_bonus,
-        day_bonus: firstLevel.day_bonus,
-        week_bonus: firstLevel.week_bonus,
-        month_bonus: firstLevel.month_bonus,
-        year_bonus: firstLevel.year_bonus,
-        birthday_bonus: firstLevel.birthday_bonus,
-        credit_bonus: firstLevel.credit_bonus
-      } : { level_bonus: 0, day_bonus: 0, week_bonus: 0, month_bonus: 0, year_bonus: 0, birthday_bonus: 0, credit_bonus: 0 }
+  try {
+    const configRes: any = await phpGameClient.get('level-rewards/configs');
+    const list = configRes?.data ?? (Array.isArray(configRes) ? configRes : []);
+    if (configRes?.code !== 200 && configRes?.code !== 0) {
+      return defaultVipInfoResponse(configRes?.code ?? 500, configRes?.message ?? '获取等级配置失败');
     }
-  };
+    const levels: VipLevel[] = (Array.isArray(list) ? list : []).map(mapLevelConfigToVipLevel);
+    const firstLevel = levels[0];
+
+    let total_bet = 0;
+    let total_deposit = 0;
+    try {
+      const rewardRes: any = await phpGameClient.get('level-rewards');
+      if (rewardRes?.code === 200 || rewardRes?.code === 0) {
+        total_bet = Number(rewardRes?.data?.totalBetting ?? rewardRes?.data?.total_bet ?? 0);
+        total_deposit = Number(rewardRes?.data?.totalDeposit ?? rewardRes?.data?.total_deposit ?? 0);
+      }
+    } catch (_) {}
+
+    return {
+      code: 200,
+      message: '',
+      data: {
+        levels,
+        total_bet,
+        total_deposit,
+        levelup_types: levelupTypes,
+        member_levels: firstLevel ? {
+          level_bonus: firstLevel.level_bonus,
+          day_bonus: firstLevel.day_bonus,
+          week_bonus: firstLevel.week_bonus,
+          month_bonus: firstLevel.month_bonus,
+          year_bonus: firstLevel.year_bonus,
+          birthday_bonus: firstLevel.birthday_bonus,
+          credit_bonus: firstLevel.credit_bonus
+        } : DEFAULT_VIP_INFO_DATA.member_levels
+      }
+    };
+  } catch (e: any) {
+    return defaultVipInfoResponse(500, e?.message ?? 'houduan 接口失败');
+  }
 }
 
-// 仅 Supabase：VIP 等级与礼金从 level_reward_config + profiles 读取
-// 获取VIP信息（完整详情）
-export const getUserVipInfo = (): Promise<VipInfoResponse> => {
-  return getVipInfoFromSupabase();
+// 获取VIP信息（完整详情）：统一走 houduan
+export const getUserVipInfo = async (): Promise<VipInfoResponse> => {
+  return getVipInfoFromHouduan();
 };
 
 // 获取VIP信息（兼容旧接口）
 export const getUserVip = (): Promise<VipResponse> => {
-  return getVipInfoFromSupabase().then((res) => ({
+  return getUserVipInfo().then((res) => ({
     code: res.code,
     message: res.message,
     data: res.data?.levels ?? []
