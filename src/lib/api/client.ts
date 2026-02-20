@@ -3,9 +3,10 @@
  */
 import axios, { AxiosInstance, AxiosError } from 'axios';
 
-// 统一走 /api/v1 相对路径：
-// - 开发：Vite proxy 代理到 VITE_BACKEND_URL（见 vite.config.ts）
-// - 生产（Vercel）：vercel.json rewrites 代理到 https://admin.amjsvip.cc，避免跨域 CORS
+// 统一走 /api/v1 相对路径（同域请求，无 CORS）：
+// - 开发：Vite proxy 代理到 VITE_BACKEND_URL（vite.config.ts）
+// - 生产 Vercel：vercel.json rewrites 转发到 admin.amjsvip.cc
+// - 生产 Netlify：netlify.toml redirects 转发到 admin.amjsvip.cc
 const API_BASE_URL = '/api/v1';
 
 // console.log('🔧 API配置:', {

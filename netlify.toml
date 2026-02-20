@@ -1,13 +1,29 @@
 # Netlify 构建与发布配置（用户端 vip）
 
 [build]
-  command   = "npm run build"
-  publish   = "dist"
-  # 若仓库根目录不是 vip，可改为子目录，例如：
-  # base     = "vip"
+  command = "npm run build"
+  publish = "dist"
 
-# SPA：所有路径回落到 index.html
+# ────────────────────────────────────────────────────────────
+# API 代理（必须在 SPA 规则之前，Netlify 按顺序匹配）
+# 将 /api/v1/* 全部转发到 houduan 后端，解决跨域 CORS
+# ────────────────────────────────────────────────────────────
 [[redirects]]
-  from    = "/*"
-  to      = "/index.html"
-  status  = 200
+  from   = "/api/v1/*"
+  to     = "https://admin.amjsvip.cc/api/v1/:splat"
+  status = 200
+  force  = true
+
+[[redirects]]
+  from   = "/api/*"
+  to     = "https://admin.amjsvip.cc/api/:splat"
+  status = 200
+  force  = true
+
+# ────────────────────────────────────────────────────────────
+# SPA：所有其他路径回落到 index.html（必须放最后）
+# ────────────────────────────────────────────────────────────
+[[redirects]]
+  from   = "/*"
+  to     = "/index.html"
+  status = 200
