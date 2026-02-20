@@ -1,13 +1,21 @@
 /**
  * 团队管理（推广赚钱）相关API
- * 当使用 Supabase 认证时，邀请码从 profiles.invite_code / RPC ensure_invite_code 获取
- * 使用 PHP 后端时走 phpGameClient，推广链接可依赖 auth/profile 返回的 invite_code
+ * 统一走 houduan /api/v1/agent/* 路由：
+ *   GET  agent/info              - 代理基本信息（含 invite_code）
+ *   GET  agent/invite-info       - 邀请信息（含邀请码、下级数）
+ *   GET  agent/overview          - 团队概览（团队图表）
+ *   GET  agent/my-stats          - 我的统计（报表）
+ *   GET  agent/performance       - 团队业绩报表
+ *   GET  agent/commission        - 佣金信息（返点/fdinfo）
+ *   GET  agent/commission-rates  - 返点比率
+ *   GET  agent/subordinate/list  - 下级列表（childlist）
+ *   GET  agent/subordinate/bets  - 下级投注（gamerecord）
+ *   GET  agent/subordinate/finance - 下级资金流水（moneylog）
+ *   POST agent/create-account    - 创建下级账号（team/add）
+ *   POST agent/claim-commission  - 领取佣金
  */
-import apiClient from './client';
 import phpGameClient from './php-game-client';
 import { supabase, USE_SUPABASE_AUTH } from '@/lib/supabase';
-
-const usePhpBackend = import.meta.env.VITE_USE_PHP_GAME_BACKEND === 'true';
 
 export interface TeamMember {
   id: number;
@@ -28,10 +36,7 @@ export interface TeamChildListRequest {
 export interface TeamChildListResponse {
   code: number;
   message: string;
-  data: {
-    data: TeamMember[];
-    total?: number;
-  };
+  data: { data: TeamMember[]; total?: number };
 }
 
 export interface TeamMoneyLogRequest {
@@ -43,17 +48,13 @@ export interface TeamMoneyLogRequest {
 export interface TeamMoneyLogResponse {
   code: number;
   message: string;
-  data: {
-    data: any[];
-    total?: number;
-  };
+  data: { data: any[]; total?: number };
 }
 
 export interface TeamAddRequest {
   name: string;
   password?: string;
   code?: string;
-  key?: string;
   [key: string]: any;
 }
 
@@ -66,10 +67,7 @@ export interface TeamGameRecordRequest {
 export interface TeamGameRecordResponse {
   code: number;
   message: string;
-  data: {
-    data: any[];
-    total?: number;
-  };
+  data: { data: any[]; total?: number };
 }
 
 export interface TeamRate {
@@ -81,9 +79,7 @@ export interface TeamRate {
 export interface TeamFdInfoResponse {
   code: number;
   message: string;
-  data: {
-    agent_rates: TeamRate[];
-  };
+  data: { agent_rates: TeamRate[] };
 }
 
 export interface TeamChartResponse {
@@ -95,7 +91,6 @@ export interface TeamChartResponse {
 export interface TeamReportRequest {
   start_time?: string;
   end_time?: string;
-  created_at?: string; // 后端可能需要的字段
   [key: string]: any;
 }
 
@@ -122,7 +117,6 @@ export interface InviteLinkListResponse {
 
 export interface CreateInviteLinkRequest {
   name?: string;
-  rates?: any; // 返点比例数据
   [key: string]: any;
 }
 
@@ -138,7 +132,12 @@ export interface TeamResponse {
   data?: any;
 }
 
-// 获取下级会员列表
+/** 标准化响应 code（后端返 0 表示成功） */
+function ok(res: any): number {
+  return res?.code === 0 ? 200 : (res?.code ?? 200);
+}
+
+// 获取下级会员列表 → GET /api/v1/agent/subordinate/list
 export const getTeamChildList = (params: TeamChildListRequest = {}): Promise<TeamChildListResponse> => {
   if (USE_SUPABASE_AUTH) {
     return (async () => {
@@ -152,82 +151,70 @@ export const getTeamChildList = (params: TeamChildListRequest = {}): Promise<Tea
       const { data: rows, count, error } = await q.order('created_at', { ascending: false }).range(from, from + limit - 1);
       if (error) return { code: 500, message: error.message, data: { data: [], total: 0 } };
       const data = (rows ?? []).map((r: any) => ({
-        id: r.id,
-        name: r.nickname || r.username || r.id?.slice(0, 8),
-        balance: Number(r.balance ?? 0),
-        total_recharge: Number(r.total_deposit ?? 0),
-        total_withdraw: 0,
-        created_at: r.created_at
+        id: r.id, name: r.nickname || r.username || r.id?.slice(0, 8),
+        balance: Number(r.balance ?? 0), total_recharge: Number(r.total_deposit ?? 0),
+        total_withdraw: 0, created_at: r.created_at
       }));
       return { code: 200, message: 'ok', data: { data, total: count ?? 0 } };
     })();
   }
-  return apiClient.post('/team/childlist', {
-    page: params.page || 1,
-    limit: params.limit || 20,
-    name: params.name || ''
+  return phpGameClient.get('agent/subordinate/list', {
+    params: { page: params.page ?? 1, pageSize: params.limit ?? 20, keyword: params.name ?? '' }
   }).then((res: any) => {
-    // 处理不同的响应结构
-    if (res.code === 200) {
-      // 如果data是数组，包装成标准格式
-      if (Array.isArray(res.data)) {
-        return {
-          ...res,
-          data: {
-            data: res.data,
-            total: res.total || res.data.length
-          }
-        };
-      }
-      // 如果data是对象但没有data字段，尝试从其他字段获取
-      if (res.data && !res.data.data && !Array.isArray(res.data)) {
-        const dataArray = res.data.list || res.data.members || [];
-        return {
-          ...res,
-          data: {
-            data: Array.isArray(dataArray) ? dataArray : [],
-            total: res.data.total || res.total || 0
-          }
-        };
-      }
-    }
-    return res;
-  });
+    const raw = res?.data?.list ?? res?.data?.data ?? res?.data ?? [];
+    const list = Array.isArray(raw) ? raw : [];
+    return {
+      code: ok(res), message: res?.message ?? '',
+      data: { data: list.map((r: any) => ({
+        id: r.id, name: r.nickname ?? r.username ?? '', balance: Number(r.balance ?? 0),
+        total_recharge: Number(r.totalDeposit ?? r.total_recharge ?? 0),
+        total_withdraw: Number(r.totalWithdraw ?? r.total_withdraw ?? 0),
+        created_at: r.createdAt ?? r.created_at ?? ''
+      })), total: res?.data?.total ?? list.length }
+    };
+  }).catch(() => ({ code: 200, message: '', data: { data: [], total: 0 } }));
 };
 
-// 获取团队资金流水
+// 获取团队资金流水 → GET /api/v1/agent/subordinate/finance
 export const getTeamMoneyLog = (params: TeamMoneyLogRequest = {}): Promise<TeamMoneyLogResponse> => {
-  // 根据接口清单：POST /team/moneylog
-  return apiClient.post('/team/moneylog', {
-    page: params.page || 1,
-    limit: params.limit || 20,
-    member_name: params.member_name || ''
-  });
+  return phpGameClient.get('agent/subordinate/finance', {
+    params: { page: params.page ?? 1, pageSize: params.limit ?? 20, keyword: params.member_name ?? '' }
+  }).then((res: any) => {
+    const raw = res?.data?.list ?? res?.data?.data ?? res?.data ?? [];
+    const list = Array.isArray(raw) ? raw : [];
+    return { code: ok(res), message: res?.message ?? '', data: { data: list, total: res?.data?.total ?? list.length } };
+  }).catch(() => ({ code: 200, message: '', data: { data: [], total: 0 } }));
 };
 
-// 添加团队成员
+// 添加团队成员（创建下级账号） → POST /api/v1/agent/create-account
 export const addTeamMember = (params: TeamAddRequest): Promise<TeamResponse> => {
-  // 根据接口清单：POST /team/add
-  return apiClient.post('/team/add', params);
+  return phpGameClient.post('agent/create-account', {
+    username: params.name,
+    password: params.password,
+  }).then((res: any) => ({
+    code: ok(res), message: res?.message ?? '', data: res?.data
+  }));
 };
 
-// 获取团队游戏记录
+// 获取团队游戏记录（下级投注） → GET /api/v1/agent/subordinate/bets
 export const getTeamGameRecord = (params: TeamGameRecordRequest = {}): Promise<TeamGameRecordResponse> => {
-  // 根据接口清单：POST /team/gamerecord
-  return apiClient.post('/team/gamerecord', {
-    page: params.page || 1,
-    limit: params.limit || 20,
-    member_name: params.member_name || ''
-  });
+  return phpGameClient.get('agent/subordinate/bets', {
+    params: { page: params.page ?? 1, pageSize: params.limit ?? 20, keyword: params.member_name ?? '' }
+  }).then((res: any) => {
+    const raw = res?.data?.list ?? res?.data?.data ?? res?.data ?? [];
+    const list = Array.isArray(raw) ? raw : [];
+    return { code: ok(res), message: res?.message ?? '', data: { data: list, total: res?.data?.total ?? list.length } };
+  }).catch(() => ({ code: 200, message: '', data: { data: [], total: 0 } }));
 };
 
-// 获取下级返点设置
-export const getTeamChildRates = (params: { member_name?: string }): Promise<TeamResponse> => {
-  // 根据接口清单：POST /team/childrates
-  return apiClient.post('/team/childrates', params);
+// 获取下级返点设置 → GET /api/v1/agent/commission-rates
+export const getTeamChildRates = (_params: { member_name?: string }): Promise<TeamResponse> => {
+  return phpGameClient.get('agent/commission-rates').then((res: any) => ({
+    code: ok(res), message: res?.message ?? '', data: res?.data
+  })).catch(() => ({ code: 200, message: '', data: {} }));
 };
 
-/** 从 Supabase 获取当前用户邀请码（无则生成并回写），用于推广链接 */
+/** 从 Supabase 获取当前用户邀请码（无则生成并回写） */
 export async function getMyInviteCodeFromSupabase(): Promise<string | null> {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session?.user?.id) return null;
@@ -236,115 +223,70 @@ export async function getMyInviteCodeFromSupabase(): Promise<string | null> {
   return data ?? null;
 }
 
-/** 获取注册页带邀请码的完整 URL（前端域名 + /Register?i=code） */
+/** 获取注册页带邀请码的完整 URL */
 export function getInviteRegisterUrl(code: string): string {
-  if (typeof window !== 'undefined') {
-    return `${window.location.origin}/Register?i=${encodeURIComponent(code)}`;
-  }
+  if (typeof window !== 'undefined') return `${window.location.origin}/Register?i=${encodeURIComponent(code)}`;
   return `/Register?i=${encodeURIComponent(code)}`;
 }
 
-// 获取返点信息
+// 获取返点/代理信息 → GET /api/v1/agent/commission
 export const getTeamFdInfo = (): Promise<TeamFdInfoResponse> => {
-  if (USE_SUPABASE_AUTH) {
-    return Promise.resolve({ code: 200, message: 'ok', data: { agent_rates: [] } });
-  }
-  if (usePhpBackend) {
-    return phpGameClient.get('team/fdinfo').then((res: any) => ({
-      code: 200,
-      message: res?.message ?? 'ok',
-      data: { agent_rates: res?.data?.agent_rates ?? res?.agent_rates ?? [] }
-    })).catch(() => ({ code: 200, message: 'ok', data: { agent_rates: [] } }));
-  }
-  return apiClient.get('/team/fdinfo');
+  if (USE_SUPABASE_AUTH) return Promise.resolve({ code: 200, message: 'ok', data: { agent_rates: [] } });
+  return phpGameClient.get('agent/commission').then((res: any) => {
+    const d = res?.data ?? {};
+    const rates: TeamRate[] = Array.isArray(d.rates)
+      ? d.rates.map((r: any) => ({ api_name: r.platform ?? r.api_name ?? '', rate: Number(r.rate ?? 0) }))
+      : Array.isArray(d.agent_rates) ? d.agent_rates : [];
+    return { code: ok(res), message: res?.message ?? 'ok', data: { agent_rates: rates } };
+  }).catch(() => ({ code: 200, message: 'ok', data: { agent_rates: [] } }));
 };
 
-// 获取团队图表数据
+// 获取团队图表/概览 → GET /api/v1/agent/overview
 export const getTeamChart = (): Promise<TeamChartResponse> => {
-  // 根据接口清单：POST /team/chart
-  return apiClient.post('/team/chart');
+  return phpGameClient.get('agent/overview').then((res: any) => ({
+    code: ok(res), message: res?.message ?? '', data: res?.data ?? {}
+  })).catch(() => ({ code: 200, message: '', data: {} }));
 };
 
-// 获取团队报表
+// 获取团队报表 → GET /api/v1/agent/performance
 export const getTeamReport = (params: TeamReportRequest = {}): Promise<TeamReportResponse> => {
-  if (USE_SUPABASE_AUTH) {
-    return Promise.resolve({ code: 200, message: 'ok', data: {} });
-  }
-  if (usePhpBackend) {
-    return phpGameClient.post('team/report', params).then((res: any) => ({
-      code: 200,
-      message: res?.message ?? 'ok',
-      data: res?.data ?? {}
-    })).catch(() => ({ code: 200, message: 'ok', data: {} }));
-  }
-  return apiClient.post('/team/report', params);
+  if (USE_SUPABASE_AUTH) return Promise.resolve({ code: 200, message: 'ok', data: {} });
+  return phpGameClient.get('agent/performance', {
+    params: { startTime: params.start_time ?? '', endTime: params.end_time ?? '' }
+  }).then((res: any) => ({
+    code: ok(res), message: res?.message ?? 'ok', data: res?.data ?? {}
+  })).catch(() => ({ code: 200, message: 'ok', data: {} }));
 };
 
-// 获取邀请链接列表（PHP 后端无此接口时返回空列表，由页面用 userInfo.invite_code 生成推广链接）
+// 获取邀请信息/链接 → GET /api/v1/agent/invite-info
 export const getInviteLinkList = (): Promise<InviteLinkListResponse> => {
-  if (usePhpBackend) {
-    return phpGameClient.get('team/invite/list').then((res: any) => {
-      const raw = res?.data ?? res?.list ?? res?.links ?? [];
-      const list = Array.isArray(raw) ? raw : (res?.data?.list ?? res?.data?.data ?? []);
-      const data = Array.isArray(list) ? list : [];
-      return { code: 200, message: res?.message ?? '', data };
-    }).catch(() => ({ code: 200, message: '', data: [] }));
-  }
-  return apiClient.get('/team/invite/list').then((res: any) => {
-    if (res.code === 200) {
-      if (Array.isArray(res.data)) return res;
-      if (res.data && !Array.isArray(res.data)) {
-        const linkArray = res.data.list || res.data.data || res.data.links || [];
-        return { ...res, data: Array.isArray(linkArray) ? linkArray : [] };
-      }
-    }
-    return res;
-  });
+  return phpGameClient.get('agent/invite-info').then((res: any) => {
+    const d = res?.data ?? {};
+    const inviteCode: string = d.inviteCode ?? d.invite_code ?? d.code ?? '';
+    const registerUrl = inviteCode && typeof window !== 'undefined'
+      ? `${window.location.origin}/Register?i=${encodeURIComponent(inviteCode)}` : '';
+    const data: InviteLink[] = inviteCode ? [{
+      id: 1, code: inviteCode, url: registerUrl, status: 1, created_at: ''
+    }] : [];
+    return { code: ok(res), message: res?.message ?? '', data };
+  }).catch(() => ({ code: 200, message: '', data: [] }));
 };
 
-// 创建邀请链接（PHP 后端无此接口时返回失败，页面用 userInfo.invite_code 展示）
-export const createInviteLink = (params: CreateInviteLinkRequest = {}): Promise<TeamResponse> => {
-  if (usePhpBackend) {
-    return phpGameClient.post('team/invite/create', params).then((res: any) => ({
-      code: res?.code === 0 || res?.code === 200 ? 200 : res?.code ?? 200,
-      message: res?.message ?? '',
-      data: res?.data
-    })).catch(() => ({ code: 500, message: '创建失败', data: undefined }));
-  }
-  return apiClient.post('/team/invite/create', params);
+// 创建邀请链接（houduan 无专门接口，返回代理信息中的邀请码）
+export const createInviteLink = (_params: CreateInviteLinkRequest = {}): Promise<TeamResponse> => {
+  return phpGameClient.get('agent/invite-info').then((res: any) => ({
+    code: ok(res), message: res?.message ?? '', data: res?.data
+  })).catch(() => ({ code: 200, message: '', data: undefined }));
 };
 
-// 更新邀请链接
-export const updateInviteLink = (params: UpdateInviteLinkRequest): Promise<TeamResponse> => {
-  // 根据接口清单：POST /team/invite/update
-  return apiClient.post('/team/invite/update', params);
+// 更新邀请链接（houduan 无专门接口，忽略）
+export const updateInviteLink = (_params: UpdateInviteLinkRequest): Promise<TeamResponse> => {
+  return Promise.resolve({ code: 200, message: '', data: undefined });
 };
 
-// export const getRechargeInfo = (bill_no: string = ''): Promise<any> => {
-//   return apiClient.get('/recharge/info', {
-//     params: {
-//       bill_no
-//     }
-//   }).then((res: any) => {
-//     return {
-//       code: res.code || 200,
-//       message: res.message || '',
-//       data: res.data?.data || res.data || {}
-//     };
-//   });
-// };
+// 获取充值记录（用于充值状态查询） → GET /api/v1/recharge/records
 export const getRechargeInfo = (params: any): Promise<any> => {
-  // 根据接口清单：POST auth/info/update
-  return apiClient.post('/recharge/info', params).then((res: any) => {
-    // 处理不同的响应结构
-    if (res.code === 200) {
-      return {
-        "status": "success",
-        "code": 200,
-        "message": "",
-        data: res.data
-      };
-    }
-    return res;
-  });
+  return phpGameClient.get('recharge/records', { params: { page: 1, pageSize: 1, trano: params?.trano ?? '' } }).then((res: any) => ({
+    status: 'success', code: ok(res), message: res?.message ?? '', data: res?.data
+  })).catch(() => ({ status: 'error', code: 500, message: '获取失败', data: null }));
 };

@@ -2,7 +2,7 @@
  * 资金流水相关API
  * 使用 Supabase 登录时从 balance_log 表读取，不再请求 PHP 接口，避免 401 导致退出登录
  */
-import apiClient from './client';
+import phpGameClient from './php-game-client';
 import { supabase, USE_SUPABASE_AUTH, SUPABASE_TABLES } from '@/lib/supabase';
 
 export interface MoneyLogRequest {
@@ -171,14 +171,31 @@ export const getMoneyLog = (params: MoneyLogRequest = {}): Promise<MoneyLogRespo
         }
       };
     }
-    // PHP 接口
-    const requestParams: any = { page: params.page || 1, limit: params.limit || 20 };
-    if (params.start_time && params.end_time) requestParams.created_at = [params.start_time, params.end_time];
-    else if (params.created_at) requestParams.created_at = params.created_at;
-    if (params.operate_type) requestParams.operate_type = params.operate_type;
-    else if (params.type) requestParams.operate_type = params.type;
-    const lang = localStorage.getItem('ly_lang') || 'zh_cn';
-    return await apiClient.post(`moneylog?lang=${encodeURIComponent(lang)}`, requestParams);
+    // PHP 后端 → GET /api/v1/account/transaction-records
+    const queryParams: any = { page: params.page || 1, pageSize: params.limit || 20 };
+    if (params.start_time) queryParams.startTime = params.start_time;
+    if (params.end_time) queryParams.endTime = params.end_time;
+    if (params.operate_type || params.type) queryParams.type = params.operate_type || params.type;
+    return await phpGameClient.get('account/transaction-records', { params: queryParams }).then((res: any) => {
+      const raw = res?.data?.list ?? res?.data?.data ?? res?.data ?? [];
+      const list: MoneyLogItem[] = Array.isArray(raw) ? raw.map((r: any) => ({
+        id: r.id,
+        operate_type: r.type ?? r.operate_type ?? '',
+        operate_type_text: r.typeName ?? r.operate_type_text ?? r.type ?? '',
+        money: Number(r.amount ?? r.money ?? 0),
+        number_type: Number(r.direction ?? r.number_type ?? 1),
+        money_before: r.balanceBefore != null ? Number(r.balanceBefore) : undefined,
+        money_after: r.balanceAfter != null ? Number(r.balanceAfter) : undefined,
+        description: r.remark ?? r.description ?? '',
+        created_at: r.createdAt ?? r.created_at ?? ''
+      })) : [];
+      const sumMoney = list.reduce((s, l) => s + (Number(l.money) || 0), 0);
+      return {
+        code: res?.code === 0 ? 200 : (res?.code ?? 200),
+        message: res?.message ?? '',
+        data: { data: list, total: res?.data?.total ?? list.length, statistic: { sum_money: sumMoney, valid_money: sumMoney } }
+      };
+    });
   })();
 };
 
@@ -193,8 +210,11 @@ export const getMoneyLogType = (): Promise<MoneyLogTypeResponse> => {
     if (USE_SUPABASE_AUTH || (await supabase.auth.getSession()).data?.session?.access_token) {
       return { code: 200, message: '', data: MONEY_LOG_TYPES };
     }
-    const lang = localStorage.getItem('ly_lang') || 'zh_cn';
-    return apiClient.get(`moneylog/type?lang=${encodeURIComponent(lang)}`);
+    return phpGameClient.get('account/transaction-types').then((res: any) => ({
+      code: res?.code === 0 ? 200 : (res?.code ?? 200),
+      message: res?.message ?? '',
+      data: res?.data ?? MONEY_LOG_TYPES
+    })).catch(() => ({ code: 200, message: '', data: MONEY_LOG_TYPES }));
   })();
 };
 

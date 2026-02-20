@@ -8,11 +8,10 @@
  */
 import axios, { AxiosInstance } from 'axios'
 
-// 开发时走 Vite proxy（/api/v1 → VITE_BACKEND_URL）
-// 生产时直接使用后端完整 URL，避免需要前端 Nginx 配置 proxy
-const PHP_GAME_BASE = import.meta.env.PROD
-  ? `${(import.meta.env.VITE_BACKEND_URL as string || 'https://admin.amjsvip.cc').replace(/\/+$/, '')}/api/v1`
-  : '/api/v1'
+// 统一走 /api/v1 相对路径：
+// - 开发：Vite proxy 代理到 VITE_BACKEND_URL（见 vite.config.ts）
+// - 生产（Vercel）：vercel.json rewrites 代理到 https://admin.amjsvip.cc，避免跨域 CORS
+const PHP_GAME_BASE = '/api/v1'
 
 const phpGameClient: AxiosInstance = axios.create({
   baseURL: PHP_GAME_BASE,

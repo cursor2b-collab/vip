@@ -175,20 +175,19 @@ export interface ApiMoneyResponse {
 // 工具（严格按接口文档）
 // ---------------------------------------------------------------------------
 
-/** 是否使用 bet-proxy（配置了 VITE_BET_PROXY_URL 即走 api-bet.net） */
-export const shouldUseBetProxy = (): boolean =>
-  !!(import.meta.env.VITE_BET_PROXY_URL as string)?.trim()
+/** bet-proxy 已弃用，统一走 houduan，始终返回 false */
+export const shouldUseBetProxy = (): boolean => false
 
-/** 是否使用美盛游戏接口（PHP 后端 /api/v1/game/*），默认 true */
-export const shouldUsePhpGameBackend = (): boolean =>
-  import.meta.env.VITE_USE_PHP_GAME_BACKEND !== 'false'
+/** 始终使用 houduan PHP 后端（/api/v1/game/*） */
+export const shouldUsePhpGameBackend = (): boolean => true
 
-/** 是否使用新 JS 游戏接口（https://api.amjsvip.cc/ley/*），配置 VITE_GAME_API_URL 即启用 */
-export const shouldUseLeyGameApi = (): boolean =>
-  !!(import.meta.env.VITE_GAME_API_URL as string)?.trim()
+/** ley 游戏接口已弃用，统一走 houduan，始终返回 false */
+export const shouldUseLeyGameApi = (): boolean => false
 
 function getLeyGameBase(): string {
-  return (import.meta.env.VITE_GAME_API_URL as string)?.replace(/\/+$/, '') || 'https://api.amjsvip.cc'
+  return (import.meta.env.VITE_GAME_API_URL as string)?.replace(/\/+$/, '')
+    || (import.meta.env.VITE_BACKEND_URL as string)?.replace(/\/+$/, '')
+    || 'https://admin.amjsvip.cc'
 }
 
 /**
@@ -305,10 +304,10 @@ export const getServerBalanceAll = async (params: {
   }
   if (shouldUsePhpGameBackend()) {
     try {
-      const res = await phpGameClient.get<{ code?: number; data?: { platforms?: Array<{ code: string; balance?: string | number }> } }>('game/platform-balances')
-      const list = res?.data?.platforms ?? []
+      const res: any = await phpGameClient.get('game/platform-balances')
+      const list: Array<{ code: string; balance?: string | number }> = res?.data?.platforms ?? []
       const data: Record<string, number> = {}
-      list.forEach((p: { code: string; balance?: string | number }) => {
+      list.forEach((p) => {
         data[p.code] = Number(p.balance ?? 0)
         data[p.code.toLowerCase()] = Number(p.balance ?? 0)
       })
@@ -339,7 +338,7 @@ export const getServerTransferAll = async (params: {
   }
   if (shouldUsePhpGameBackend()) {
     try {
-      const res = await phpGameClient.post<{ code?: number; message?: string; data?: { totalAmount?: string } }>('game/transfer/recall-all', {})
+      const res: any = await phpGameClient.post('game/transfer/recall-all', {})
       const ok = (res?.code === 0)
       const total = ok ? Number(res?.data?.totalAmount ?? 0) : 0
       return { code: ok ? 200 : (res?.code ?? 500), message: res?.message, data: { balanceAll: total } }
@@ -388,7 +387,7 @@ function resolveImageUrl(url: string): string {
   if (!t) return ''
   if (t.startsWith('http://') || t.startsWith('https://')) return t
   if (t.startsWith('/images/')) return t
-  const base = (import.meta.env.VITE_API_URL || '').replace(/\/api\/?$/, '') || (typeof window !== 'undefined' ? window.location.origin : '')
+  const base = (import.meta.env.VITE_BACKEND_URL as string || '').replace(/\/+$/, '') || (import.meta.env.VITE_API_URL || '').replace(/\/api\/?$/, '') || (typeof window !== 'undefined' ? window.location.origin : '')
   return base + (t.startsWith('/') ? '' : '/') + t
 }
 
@@ -428,7 +427,8 @@ export const getGameUrl = async (params: {
       isMobile: isMobile ? 1 : 0
     })
     if (r.Code !== 0) throw new Error(r.Message || '获取游戏链接失败')
-    const url = (r.Data?.url && String(r.Data.url).trim()) || ''
+    const rawUrl = r.Data?.url
+    const url: string = (rawUrl != null ? String(rawUrl).trim() : '') || ''
     if (url) return { code: 200, message: '成功', status: 'success', data: { game_url: url, url } }
     throw new Error('游戏链接为空')
   }
@@ -591,7 +591,7 @@ export const gameTransferOut = async (apiCode: string): Promise<GameTransferResp
     const balance = balRes.money || 0
     if (balance <= 0) return { code: 200, message: '该接口余额为0，无需转出', status: 'success', data: { money: 0 } }
     const amount = Math.floor(balance * 100) / 100
-    const res = await phpGameClient.post<{ code?: number; message?: string }>('game/transfer/out', { platform: mapped, amount: String(amount) })
+    const res: any = await phpGameClient.post('game/transfer/out', { platform: mapped, amount: String(amount) })
     if (res?.code === 0) {
       return { code: 200, message: '转出成功', status: 'success', data: { money: amount } }
     }
@@ -649,9 +649,9 @@ export const getGameBalance = async (apiCode: string): Promise<{ code: number; m
   }
 
   if (shouldUsePhpGameBackend()) {
-    const res = await phpGameClient.get<{ code?: number; data?: { balance?: string } }>(`game/balance/${mapped}`)
+    const res: any = await phpGameClient.get(`game/balance/${mapped}`)
     const money = Number(res?.data?.balance ?? 0) || 0
-    return { code: res?.code ?? 0, money, data: { money } }
+    return { code: res?.code === 0 ? 200 : (res?.code ?? 200), money, data: { money } }
   }
 
   if (shouldUseBetProxy()) {
@@ -687,7 +687,7 @@ export const gameTransferIn = async (apiCode: string, amount?: number): Promise<
   if (shouldUsePhpGameBackend()) {
     const amt = amount != null && !Number.isNaN(amount) ? Math.max(0, amount) : 0
     if (amt < 0.01) return Promise.reject(new Error('转入金额无效'))
-    const res = await phpGameClient.post<{ code?: number; message?: string }>('game/transfer/in', { platform: mapped, amount: String(amt) })
+    const res: any = await phpGameClient.post('game/transfer/in', { platform: mapped, amount: String(amt) })
     if (res?.code === 0) {
       return { code: 200, message: '成功', status: 'success', data: { money: amt } }
     }
@@ -732,7 +732,7 @@ export const getGameList = (_category?: string): Promise<GameListResponse> => {
   if (shouldUseLeyGameApi()) {
     return Promise.all(
       LEY_GAMELIST_PLATFORMS.map((api_code) =>
-        leyGamePost('gamelist', { api_code }).then((r) => ({ api_code, r })).catch(() => ({ api_code: '', r: { Code: -1 } }))
+        leyGamePost('gamelist', { api_code }).then((r) => ({ api_code, r })).catch(() => ({ api_code: '', r: { Code: -1, Data: undefined as Record<string, unknown> | undefined } }))
       )
     ).then((results) => {
       let globalIndex = 0
@@ -774,17 +774,16 @@ export const getGameList = (_category?: string): Promise<GameListResponse> => {
   }
   if (shouldUsePhpGameBackend()) {
     return phpGameClient
-      .get<{ code?: number; data?: { list?: Record<string, unknown>[]; total?: number } } | { list?: Record<string, unknown>[] }>('game/list', { params: { limit: 5000 } })
-      .then((res) => {
-        // 拦截器已返回 body，后端格式为 { code, data: { list, total } } 或 { list }
-        const raw = (res as { data?: { list?: unknown[] } })?.data?.list ?? (res as { list?: unknown[] })?.list ?? []
-        const list = (Array.isArray(raw) ? raw : []).map((g: Record<string, unknown>) => {
+      .get('game/list', { params: { limit: 5000 } })
+      .then((res: any) => {
+        const raw: any[] = res?.data?.list ?? res?.list ?? []
+        const list: Game[] = (Array.isArray(raw) ? raw : []).map((g: any): Game => {
           const type = String(g.type || 'slot').toLowerCase()
           const gameType = SUPABASE_TYPE_TO_GAME_TYPE[type] ?? 3
           const categoryId = TYPE_TO_CATEGORY[gameType] || 'gaming'
-          const cover = pickCoverUrl(g, 'cover', 'icon', 'cover_url', 'icon_url')
+          const cover = pickCoverUrl(g as Record<string, unknown>, 'cover', 'icon', 'cover_url', 'icon_url')
           return {
-            id: g.id,
+            id: Number(g.id) || 0,
             category_id: categoryId,
             name: String(g.name || ''),
             platform_name: String(g.platform || '').toUpperCase(),
@@ -799,7 +798,7 @@ export const getGameList = (_category?: string): Promise<GameListResponse> => {
         })
         return { code: 200, message: 'success', data: list }
       })
-      .catch((err) => ({ code: 500, message: (err as Error)?.message || '获取失败', data: [] }))
+      .catch((err: any) => ({ code: 500, message: (err as Error)?.message || '获取失败', data: [] }))
   }
   if (USE_SUPABASE_DATA) {
     const p = supabase
@@ -835,27 +834,28 @@ export const getGameList = (_category?: string): Promise<GameListResponse> => {
     return Promise.resolve(p)
   }
   const gameTypes = [1, 3, 4, 5, 6]
+  const typeMap: Record<number, string> = { 1: 'live', 3: 'slot', 4: 'lottery', 5: 'sport', 6: 'fishing' }
   return Promise.all(
     gameTypes.map(gt =>
-      apiClient.get('games/lists', { params: { gameType: gt, isMobile: 1 } }).then((res: { data?: unknown; code?: number }) => {
-        const arr = Array.isArray(res.data) ? res.data : (res.data as { data?: unknown[] })?.data ?? []
-        return (arr as Record<string, unknown>[]).map((g: Record<string, unknown>) => {
-          const type = Number(g.game_type ?? gt) || gt
-          const categoryId = TYPE_TO_CATEGORY[type] || 'concise'
-          const cover = pickCoverUrl(g, 'cover', 'icon', 'cover_url', 'icon_url', 'image', 'img', 'full_image_url', 'img_url', 'mobile_pic', 'web_pic')
-      return {
-            id: g.id,
+      apiClient.get('game/list', { params: { type: typeMap[gt] ?? 'slot', page: 1, limit: 500 } }).then((res: any) => {
+        const raw = res?.data?.list ?? res?.data ?? res
+        const arr: any[] = Array.isArray(raw) ? raw : (raw?.data ?? [])
+        return arr.map((g: any): Game => {
+          const typeNum: number = (typeof g.type === 'string' ? SUPABASE_TYPE_TO_GAME_TYPE[g.type] : undefined) ?? (Number(g.game_type ?? gt) || gt)
+          const categoryId = TYPE_TO_CATEGORY[typeNum] || 'concise'
+          const cover = pickCoverUrl(g as Record<string, unknown>, 'cover', 'icon', 'cover_url', 'icon_url', 'image', 'img', 'full_image_url', 'img_url', 'mobile_pic', 'web_pic')
+          return {
+            id: Number(g.id) || 0,
             category_id: categoryId,
             name: String(g.name || ''),
-            platform_name: String(g.api_name || '').toUpperCase(),
-            game_code: String((g.params as { gameCode?: string })?.gameCode ?? g.game_code ?? ''),
-            game_type: type,
-            gameType: type,
+            platform_name: String((g.platform ?? g.api_name) ?? '').toUpperCase(),
+            game_code: String(g?.params?.gameCode ?? g.gameId ?? g.game_code ?? ''),
+            game_type: typeNum,
+            gameType: typeNum,
             app_state: (g.is_open === 1 || g.is_open === '1') ? 1 : 0,
             cover,
             tags: String(g.tags || ''),
             params: g.params ?? {},
-            raw: g
           }
         })
       }).catch(() => [] as Game[])
@@ -867,10 +867,10 @@ export const getGameList = (_category?: string): Promise<GameListResponse> => {
 export const getApiGames = (): Promise<{ code: number; message: string; data: ApiGameItem[] }> => {
   if (shouldUsePhpGameBackend()) {
     return phpGameClient
-      .get<{ code?: number; data?: { list?: Record<string, unknown>[] } } | { list?: Record<string, unknown>[] }>('game/list', { params: { limit: 500 } })
-      .then((res) => {
-        const raw = (res as { data?: { list?: unknown[] } })?.data?.list ?? (res as { list?: unknown[] })?.list ?? []
-        const data: ApiGameItem[] = (Array.isArray(raw) ? raw : []).map((row: Record<string, unknown>) => ({
+      .get('game/list', { params: { limit: 500 } })
+      .then((res: any) => {
+        const raw: any[] = res?.data?.list ?? res?.list ?? []
+        const data: ApiGameItem[] = (Array.isArray(raw) ? raw : []).map((row: any) => ({
           title: String(row.name || ''),
           api_name: String(row.platform || ''),
           game_type: 1,
@@ -903,18 +903,18 @@ export const getApiGames = (): Promise<{ code: number; message: string; data: Ap
         return { code: 200, message: 'success', data: list }
       }) as Promise<{ code: number; message: string; data: ApiGameItem[] }>
   }
-  return apiClient.get('games/web').then((res: { data?: unknown; code?: number }) => {
-    const raw = (res.data as { data?: unknown[] })?.data ?? res.data
+  return apiClient.get('game/list', { params: { page: 1, limit: 500 } }).then((res: { data?: unknown; code?: number }) => {
+    const raw = (res.data as { list?: unknown[] })?.list ?? (res.data as { data?: unknown[] })?.data ?? res.data
     const arr = Array.isArray(raw) ? raw : []
     const data: ApiGameItem[] = arr.map((item: Record<string, unknown>) => ({
-      title: String(item.title ?? item.api_name ?? ''),
-      api_name: String(item.api_name ?? ''),
+      title: String(item.title ?? item.name ?? item.api_name ?? ''),
+      api_name: String(item.platform ?? item.api_name ?? ''),
       game_type: Number(item.game_type ?? 1),
-      mobile_pic: item.mobile_pic,
-      web_pic: item.web_pic,
-      platform_name: String(item.api_name || '').toUpperCase(),
-      game_code: String((item.params as { gameCode?: string })?.gameCode ?? item.game_code ?? '0'),
-      cover: (item.mobile_pic || item.web_pic) ? resolveImageUrl(String(item.mobile_pic || item.web_pic || '')) : ''
+      mobile_pic: item.mobile_pic ?? item.cover ?? item.icon,
+      web_pic: item.web_pic ?? item.cover ?? item.icon,
+      platform_name: String((item.platform ?? item.api_name) ?? '').toUpperCase(),
+      game_code: String((item.params as { gameCode?: string })?.gameCode ?? item.game_code ?? item.game_id ?? '0'),
+      cover: pickCoverUrl(item, 'cover', 'icon', 'mobile_pic', 'web_pic')
     }))
     return { code: res.code ?? 200, message: 'success', data }
   })
@@ -924,14 +924,14 @@ const GAME_TYPE_TO_PHP: Record<number, string> = {
   1: 'live', 2: 'slot', 3: 'slot', 4: 'lottery', 5: 'sport', 6: 'fishing', 7: 'chess'
 }
 
-export const getGameApiList = (gameType: number, isMobile: number = 1): Promise<GameApiListResponse> => {
+export const getGameApiList = (gameType: number, _isMobile: number = 1): Promise<GameApiListResponse> => {
   if (shouldUsePhpGameBackend()) {
     const type = GAME_TYPE_TO_PHP[gameType] || 'slot'
     return phpGameClient
-      .get<{ code?: number; data?: { list?: Record<string, unknown>[] } }>('game/platforms', { params: { type } })
-      .then((res) => {
-        const raw = res?.data?.list ?? []
-        const data: GameApi[] = raw.map((row: Record<string, unknown>, i: number) => ({
+      .get('game/platforms', { params: { type } })
+      .then((res: any) => {
+        const raw: any[] = res?.data?.list ?? []
+        const data: GameApi[] = raw.map((row: any, i: number) => ({
           id: (row.id as number) ?? i + 1,
           api_name: String(row.code || ''),
           title: String(row.name || ''),
@@ -962,11 +962,12 @@ export const getGameApiList = (gameType: number, isMobile: number = 1): Promise<
         return { code: 200, message: 'success', data: apis }
       }) as Promise<GameApiListResponse>
   }
-  return apiClient.get('games/apis', { params: { gameType, isMobile } }).then((res: { data?: GameApi[]; code?: number; message?: string }) => ({
-    code: res.code ?? 200,
-    message: res.message ?? '',
-    data: res.data ?? []
-  }))
+  const type = GAME_TYPE_TO_PHP[gameType] || 'slot'
+  return apiClient.get('game/platforms', { params: { type } }).then((res: { data?: GameApi[] | { list?: GameApi[] }; code?: number; message?: string }) => {
+    const raw = (res.data as { list?: GameApi[] })?.list ?? res.data
+    const data = Array.isArray(raw) ? raw : []
+    return { code: res.code ?? 200, message: res.message ?? '', data }
+  })
 }
 
 // ---------------------------------------------------------------------------
@@ -975,7 +976,11 @@ export const getGameApiList = (gameType: number, isMobile: number = 1): Promise<
 
 export const getGameType = (): Promise<GameTypeResponse> => {
   const lang = localStorage.getItem('ly_lang') || 'zh_cn'
-  return apiClient.post(`/game/type`, {}, { params: { lang } })
+  return phpGameClient.get('game/categories', { params: { lang } }).then((res: any) => ({
+    code: res?.code ?? 200,
+    message: res?.message ?? '',
+    data: res?.data ?? res?.list ?? []
+  })).catch(() => ({ code: 200, message: '', data: [] }))
 }
 
 /** 默认游戏货币，与 api-bet 文档一致 */
@@ -1070,7 +1075,7 @@ export const getGameRecord = (params: GameRecordRequest = {}): Promise<GameRecor
     }
     if (shouldUsePhpGameBackend()) {
       const { startTime, endTime } = getRecordTimeRange(params)
-      const res = await phpGameClient.get<{ code?: number; data?: { list?: Record<string, unknown>[]; total?: number } }>('game/records', {
+      const res: any = await phpGameClient.get('game/records', {
         params: {
           platform: params.api_name || params.api_code,
           startDate: startTime,
@@ -1079,8 +1084,8 @@ export const getGameRecord = (params: GameRecordRequest = {}): Promise<GameRecor
           pageSize: limit
         }
       })
-      const rawList = res?.data?.list ?? []
-      const list: GameRecord[] = rawList.map((r: Record<string, unknown>) => ({
+      const rawList: any[] = res?.data?.list ?? []
+      const list: GameRecord[] = rawList.map((r: any) => ({
         id: r.id,
         bet_id: r.orderNo ?? r.order_no,
         api_name: r.platform,
@@ -1098,7 +1103,7 @@ export const getGameRecord = (params: GameRecordRequest = {}): Promise<GameRecor
         status: r.status,
         state: r.status
       }))
-      const total = res?.data?.total ?? list.length
+      const total: number = res?.data?.total ?? list.length
       return buildResponse(list, total)
     }
     const lang = localStorage.getItem('ly_lang') || 'zh_cn'
@@ -1114,20 +1119,12 @@ export const getGameRecord = (params: GameRecordRequest = {}): Promise<GameRecor
 }
 
 export const getApiMoney = (apiCode: string): Promise<ApiMoneyResponse> => {
-  if (shouldUsePhpGameBackend()) {
-    return phpGameClient.get<{ code?: number; data?: { platforms?: Array<{ code: string; balance?: string | number }> } }>('game/platform-balances').then((res) => {
-      const list = res?.data?.platforms ?? []
-      const platform = String(apiCode || '').toUpperCase()
-      const item = list.find((p: { code: string }) => String(p.code).toUpperCase() === platform)
-      const money = item ? Number(item.balance ?? 0) : 0
-      const money_info = [{ api_name: platform, api_title: platform, money }]
-      return { code: 200, message: 'success', data: { money_info, is_trans_on: 1 } }
-    }).catch(() => ({ code: 500, message: '获取失败', data: { money_info: [], is_trans_on: 1 } }))
-  }
-  const lang = localStorage.getItem('ly_lang') || 'zh_cn'
-  return apiClient.post('game/api_money', { api_code: apiCode }, { params: { lang } }).then((res: { data?: ApiMoneyResponse['data']; code?: number; message?: string }) => ({
-    code: res.code ?? 200,
-    message: res.message ?? '',
-    data: res.data ?? { money_info: [] }
-  }))
+  return (phpGameClient.get('game/platform-balances') as Promise<any>).then((res: any) => {
+    const list: Array<{ code: string; balance?: string | number }> = res?.data?.platforms ?? []
+    const platform = String(apiCode || '').toUpperCase()
+    const item = list.find((p) => String(p.code).toUpperCase() === platform)
+    const money = item ? Number(item.balance ?? 0) : 0
+    const money_info = [{ api_name: platform, api_title: platform, money }]
+    return { code: 200, message: 'success', data: { money_info, is_trans_on: 1 } }
+  }).catch(() => ({ code: 500, message: '获取失败', data: { money_info: [], is_trans_on: 1 } }))
 }

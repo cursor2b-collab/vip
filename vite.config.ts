@@ -76,9 +76,9 @@
       open: true,
       // Vite 开发服务器默认支持 SPA 路由（history API fallback）
       proxy: {
-        // 优先：bet-proxy 走同源后由本代理转发到远程，避免浏览器直连导致 CORS
+        // 与 /api 统一：bet-proxy 也走同一后端（houduan）
         '/api/bet-proxy': {
-          target: process.env.VITE_BET_PROXY_URL || 'https://api.amjsvip.cc',
+          target: process.env.VITE_BACKEND_URL || 'https://admin.amjsvip.cc',
           changeOrigin: true,
           secure: true,
         },

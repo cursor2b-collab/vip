@@ -243,21 +243,19 @@ export const register = async (data: RegisterRequest): Promise<AuthResponse> => 
   };
 };
 
-// 获取验证码（图片）
+// 获取验证码（houduan 无 captcha 接口，返回 mock 让前端跳过验证码步骤）
 export const getCaptcha = (): Promise<CaptchaResponse> => {
-  return apiClient.post('/auth/captcha', {});
+  return Promise.resolve({ code: 200, message: '', data: { img: '', key: 'no-captcha', captcha_key: 'no-captcha' } });
 };
 
-// 获取滑块验证码（仅返回 key，无图片）
-// 同时传 query 和 body，兼容不同代理/后端解析方式
+// 获取滑块验证码（同上，返回 mock）
 export const getSliderCaptcha = (): Promise<CaptchaResponse> => {
-  return apiClient.post('/auth/captcha', { type: 'slider' }, { params: { type: 'slider' } });
+  return Promise.resolve({ code: 200, message: '', data: { key: 'no-captcha', captcha_key: 'no-captcha' } });
 };
 
-// 获取语言/币种列表
+// 获取语言/币种列表（从 houduan /api/v1/config 获取，降级返回默认币种）
 export const getLanguages = async (): Promise<LanguageResponse> => {
-  // 使用 GET 请求，路由是 /language（不是 /languages）
-  const response = await apiClient.get('language');
+  const response = await phpGameClient.get('config', { params: { group: 'language' } }).catch(() => null);
   
   // 后端可能返回语言数据而不是币种数据，需要转换
   const currencyMap: Record<string, string> = {

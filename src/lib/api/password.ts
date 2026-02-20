@@ -1,7 +1,9 @@
 /**
  * 密码管理相关API
+ * 统一走 houduan /api/v1/auth/* 路由
  */
 import apiClient from './client';
+import phpGameClient from './php-game-client';
 
 export interface SetDrawingPwdRequest {
   qk_pwd: string;
@@ -26,21 +28,40 @@ export interface PasswordResponse {
   data?: any;
 }
 
-// 设置提款密码
+// 设置提款密码 → POST /api/v1/auth/set-fund-password
 export const setDrawingPwd = (params: SetDrawingPwdRequest): Promise<PasswordResponse> => {
-  // 根据接口清单：POST /member/drawing_pwd/set
-  return apiClient.post('/member/drawing_pwd/set', params);
+  return phpGameClient.post('auth/set-fund-password', {
+    fund_password: params.qk_pwd,
+    fund_password_confirmation: params.qk_pwd_confirmation,
+  }).then((res: any) => ({
+    code: res?.code === 0 ? 200 : (res?.code ?? 200),
+    message: res?.message ?? '',
+    data: res?.data
+  }));
 };
 
-// 修改提款密码
+// 修改提款密码 → POST /api/v1/auth/change-fund-password
 export const modifyDrawingPwd = (params: ModifyDrawingPwdRequest): Promise<PasswordResponse> => {
-  // 根据接口清单：POST /member/drawing_pwd/modify
-  return apiClient.post('/member/drawing_pwd/modify', params);
+  return phpGameClient.post('auth/change-fund-password', {
+    old_fund_password: params.old_qk_pwd,
+    fund_password: params.qk_pwd,
+    fund_password_confirmation: params.qk_pwd_confirmation,
+  }).then((res: any) => ({
+    code: res?.code === 0 ? 200 : (res?.code ?? 200),
+    message: res?.message ?? '',
+    data: res?.data
+  }));
 };
 
-// 修改登录密码
+// 修改登录密码 → POST /api/v1/auth/change-password
 export const modifyPassword = (params: ModifyPasswordRequest): Promise<PasswordResponse> => {
-  // 根据接口清单：POST /member/password/modify
-  return apiClient.post('/member/password/modify', params);
+  return phpGameClient.post('auth/change-password', {
+    old_password: params.oldpassword,
+    password: params.password,
+    password_confirmation: params.password_confirmation,
+  }).then((res: any) => ({
+    code: res?.code === 0 ? 200 : (res?.code ?? 200),
+    message: res?.message ?? '',
+    data: res?.data
+  }));
 };
-

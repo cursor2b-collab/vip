@@ -13,7 +13,7 @@ interface ImportMetaEnv {
   readonly VITE_BET_PROXY_URL?: string;
   /** 为 false 时禁用美盛游戏接口（PHP /api/v1/game/*），默认 true */
   readonly VITE_USE_PHP_GAME_BACKEND?: string;
-  /** 新 JS 游戏接口根地址（如 https://api.amjsvip.cc），配置后用户端游戏请求走 /ley/* */
+  /** 新 JS 游戏接口根地址，配置后用户端游戏请求走 /ley/*；不填则用 VITE_BACKEND_URL */
   readonly VITE_GAME_API_URL?: string;
   [key: string]: any;
 }

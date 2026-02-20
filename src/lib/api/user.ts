@@ -1,7 +1,7 @@
 /**
  * 用户相关API
  */
-import apiClient from './client';
+import phpGameClient from './php-game-client';
 import { supabase, SUPABASE_TABLES } from '@/lib/supabase';
 
 /** 晋升条件类型：1=存款额达标 2=投注额达标 3=任一个达标 4=所有达标 */
@@ -61,34 +61,23 @@ export interface VipResponse {
   data: VipLevel[];
 }
 
-// 获取用户信息（刷新余额）
-// 使用 auth/me 接口，与 getUserInfo 相同，但保持此函数名以兼容现有代码
+// 获取用户信息（刷新余额）→ GET /api/v1/auth/profile
 export const getUserInfoFromUser = (): Promise<UserInfoResponse> => {
-  return apiClient.post('/auth/me', {}).then((res: any) => {
-    // 调试：打印所有可能的余额字段
-    if (res.code === 200 && res.data) {
-      console.log('🔍 getUserInfoFromUser 余额字段检查:', {
-        money: res.data.money,
-        balance: res.data.balance,
-        total_money: res.data.total_money,
-        fs_money: res.data.fs_money,
-        ml_money: res.data.ml_money,
-        '原始数据': res.data
-      });
-      
-      // 尝试多种可能的余额字段名（优先使用money，因为这是中心账户余额）
-      const balanceValue = res.data.money !== undefined ? res.data.money :
-                          res.data.balance !== undefined ? res.data.balance :
-                          res.data.total_money ? parseFloat(res.data.total_money) :
-                          0;
-      
+  return phpGameClient.get('auth/profile').then((res: any) => {
+    const raw = res?.data?.user ?? res?.data ?? res;
+    if (res.code === 200 || res.code === 0) {
+      const balanceValue = raw.money !== undefined ? raw.money
+        : raw.balance !== undefined ? raw.balance
+        : raw.total_money ? parseFloat(raw.total_money) : 0;
       return {
         ...res,
+        code: res.code ?? 200,
         data: {
-          ...res.data,
+          ...raw,
+          money: balanceValue,
           balance: balanceValue,
-          username: res.data.username || res.data.name || '',
-          vip: res.data.vip || res.data.vip_level || 0
+          username: raw.username ?? raw.name ?? '',
+          vip: raw.vip ?? raw.vip_level ?? 0
         }
       };
     }
@@ -184,42 +173,44 @@ export const getUserVip = (): Promise<VipResponse> => {
   }));
 };
 
+// 获取注册配置（houduan 无专门接口，从 config 获取或返回默认值）
 export const getRegSetting = (): Promise<any> => {
-  // 根据接口清单：GET /member/reg_setting
-  return apiClient.get('/member/reg_setting');
+  return phpGameClient.get('config', { params: { group: 'register' } }).then((res: any) => ({
+    code: res?.code === 0 ? 200 : (res?.code ?? 200),
+    message: res?.message ?? '',
+    data: res?.data ?? {}
+  })).catch(() => ({ code: 200, message: '', data: {} }));
 };
 
-// 退出登录
+// 退出登录 → POST /api/v1/auth/logout
 export const logoff = (): Promise<any> => {
-  return apiClient.post('logoff', {});
+  return phpGameClient.post('auth/logout', {}).then((res: any) => ({
+    code: res?.code === 0 ? 200 : (res?.code ?? 200),
+    message: res?.message ?? ''
+  })).catch(() => ({ code: 200, message: '' }));
 };
 
-// 上传头像
+// 上传头像（houduan 无独立接口，走 PUT auth/profile 更新 avatar 字段）
 export const uploadAvatar = (formData: FormData): Promise<any> => {
-  return apiClient.post('uploadimg', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  });
+  return phpGameClient.post('auth/profile', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }).then((res: any) => ({
+    code: res?.code === 0 ? 200 : (res?.code ?? 200),
+    message: res?.message ?? '',
+    data: res?.data
+  })).catch(() => ({ code: 200, message: '', data: {} }));
 };
 
-// 一键转账（回收所有游戏平台余额到钱包）
+// 一键回收所有游戏余额 → POST /api/v1/game/recover-all
 export const transferAll = (): Promise<any> => {
-  const lang = localStorage.getItem('ly_lang') || 'zh_cn';
-  console.log('💰 调用 transferAll API, lang:', lang);
-  // 尝试使用 /transall 接口
-  // 注意：如果后端没有这个接口，会返回404，需要处理
-  return apiClient.post(`transall?lang=${lang}`, {}).then((res: any) => {
-    console.log('💰 transferAll API 响应:', res);
-    return res;
-  }).catch((error: any) => {
-    console.error('❌ transferAll API 错误:', error);
-    // 如果是404，说明接口不存在
-    if (error.response?.status === 404 || error.code === 404) {
-      throw new Error('回收余额接口不存在，请使用游戏页面内的转出功能');
-    }
-    throw error;
-  });
+  return phpGameClient.post('game/recover-all', {}).then((res: any) => ({
+    code: res?.code === 0 ? 200 : (res?.code ?? 200),
+    message: res?.message ?? '',
+    data: res?.data
+  })).catch((err: any) => ({
+    code: err?.code ?? 500,
+    message: err?.message ?? '回收余额失败'
+  }));
 };
 
 // 更新用户信息
@@ -227,23 +218,22 @@ export interface UpdateUserInfoRequest {
   realname?: string;
   phone?: string;
   email?: string;
-  facebook?: string;
-  line?: string;
+  nickname?: string;
+  avatar?: string;
   [key: string]: any;
 }
 
+// 更新用户信息 → POST /api/v1/auth/profile
 export const updateUserInfo = (params: UpdateUserInfoRequest): Promise<any> => {
-  // 根据接口清单：POST auth/info/update
-  return apiClient.post('auth/info/update', params);
+  return phpGameClient.post('auth/profile', params).then((res: any) => ({
+    code: res?.code === 0 ? 200 : (res?.code ?? 200),
+    message: res?.message ?? '',
+    data: res?.data
+  }));
 };
 
-// 切换转账模式（自动/手动）
-export const changeTransferMode = (status: number): Promise<any> => {
-  const lang = localStorage.getItem('ly_lang') || 'zh_cn';
-  // 根据接口清单：POST /game/change_trans
-  // status: 1 = 自动, 0 = 手动
-  return apiClient.post(`game/change_trans?lang=${lang}`, {
-    status: status
-  });
+// 切换转账模式（houduan 无 game/change_trans，降级为成功）
+export const changeTransferMode = (_status: number): Promise<any> => {
+  return Promise.resolve({ code: 200, message: '' });
 };
 

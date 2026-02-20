@@ -77,8 +77,9 @@ export const getHomeNotices = (): Promise<NoticeResponse> => {
         return { code: 200, message: 'success', data: notices };
       });
   }
-  return apiClient.get('system/notices').then((res: any) => {
-    const notices: Notice[] = Array.isArray(res.data) ? res.data : [];
+  return apiClient.get('notices').then((res: any) => {
+    const raw = res?.data ?? res?.list ?? [];
+    const notices: Notice[] = Array.isArray(raw) ? raw.map((row: any) => ({ title: row.title ?? row.name ?? '', content: row.content ?? '', url: row.url })) : [];
     return { code: res.code ?? 200, message: res.message ?? '', data: notices };
   });
 };
@@ -155,9 +156,16 @@ export const getPopupNotice = (): Promise<PopupNoticeResponse> => {
         return { code: 200, message: 'success', alert };
       });
   }
-  return apiClient.get('system/notices', { params: { isMobile: 1 } }).then((res: any) => {
-    const alert = Array.isArray(res.alert) ? res.alert : [];
-    return { code: res.code ?? 200, message: res.message ?? '', alert };
+  return apiClient.get('notices', { params: { isMobile: 1 } }).then((res: any) => {
+    const raw = res?.data ?? res?.list ?? [];
+    const list = Array.isArray(raw) ? raw : [];
+    const alert: PopupNoticeItem[] = list.slice(0, 20).map((row: any) => ({
+      title: row.title ?? row.name ?? '', content: row.content ?? '', url: row.url ?? null,
+      popup_type: (row.popup_type ?? 'text') as const, popup_image: row.popup_image ?? null,
+      popup_font_family: row.popup_font_family ?? null, popup_font_size: row.popup_font_size ?? null,
+      popup_text_color: row.popup_text_color ?? null, popup_bg_color: row.popup_bg_color ?? null
+    }));
+    return { code: res.code ?? 200, message: res.message ?? '', alert: res.alert ?? alert };
   });
 };
 
@@ -227,15 +235,11 @@ export interface SystemConfigResponse {
 }
 
 export const getSystemConfig = (group: string = 'system'): Promise<SystemConfigResponse> => {
-  return apiClient.get('system/configs', {
-    params: {
-      group
-    }
-  }).then((res: any) => {
+  return apiClient.get('config', { params: group ? { group } : {} }).then((res: any) => {
     return {
       code: res.code || 200,
       message: res.message || '',
-      data: res.data?.data || res.data || {}
+      data: res.data?.data ?? res.data ?? {}
     };
   });
 };
@@ -252,10 +256,8 @@ export interface ServiceUrlResponse {
 export const getServiceUrl = (): Promise<ServiceUrlResponse> => {
   // 使用 getSystemConfig 接口获取客服链接，group=service 包含 service_link 配置
   // 根据 wap 项目的实现，应该使用 group=service 而不是 group=system
-  return apiClient.get('system/configs', {
-    params: {
-      group: 'service'  // 改为 service 组，因为客服配置在 service 组中
-    }
+  return apiClient.get('config', {
+    params: { group: 'service' }
   }).then((res: any) => {
     // 从 system config 中获取 service_link
     // 后端可能返回多种格式：

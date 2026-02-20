@@ -125,7 +125,7 @@ export const getActivityList = (type?: string): Promise<ActivityListResponse> =>
       return { code: 200, message: '', data: activities };
     })();
   }
-  return apiClient.get('act/list', {
+  return apiClient.get('activity/list', {
     params: { type: type || '' }
   }).then((res: any) => {
     let activities: Activity[] = [];
@@ -277,77 +277,35 @@ function normalizeRebateItem(item: any): any {
   };
 }
 
-// 获取实时反水列表
+// 获取实时反水列表 → GET /api/v1/rebate/list
 export const getRebateList = (): Promise<RebateListResponse> => {
-  // 后端 MemberController::fs_now_list 返回: status/code/message 与 data/deadtime/today/yesterday/total 合并后的单层对象
-  return apiClient.get('fsnow/list').then((res: any) => {
-    if (!res) {
-      return {
-        code: 200,
-        message: '',
-        status: 'success',
-        data: [],
-        deadtime: Math.floor(Date.now() / 1000),
-        today: 0,
-        yesterday: 0,
-        total: 0
-      };
-    }
-
-    // 列表：支持 res.data 为数组，或 res.data.data 为数组
-    let rawList: any[] = [];
-    if (Array.isArray(res.data)) {
-      rawList = res.data;
-    } else if (res.data && typeof res.data === 'object' && Array.isArray(res.data.data)) {
-      rawList = res.data.data;
-    }
-
-    // deadtime/today/yesterday/total：可能在顶层或 res.data 下
-    const inner = res.data && typeof res.data === 'object' && !Array.isArray(res.data) ? res.data : res;
-    const deadtime = inner.deadtime ?? res.deadtime ?? Math.floor(Date.now() / 1000);
-    const today = Number(inner.today ?? res.today ?? 0) || 0;
-    const yesterday = Number(inner.yesterday ?? res.yesterday ?? 0) || 0;
-    const total = Number(inner.total ?? res.total ?? 0) || 0;
-
+  return phpGameClient.get('rebate/list').then((res: any) => {
+    const inner = res?.data ?? {};
+    const rawList: any[] = inner.list ?? (Array.isArray(inner) ? inner : []);
     const data = rawList.map(normalizeRebateItem);
-
     return {
-      code: res.code ?? 200,
-      message: res.message ?? '',
-      status: res.status ?? 'success',
+      code: res?.code === 0 ? 200 : (res?.code ?? 200),
+      message: res?.message ?? '',
+      status: 'success',
       data,
-      deadtime,
-      today,
-      yesterday,
-      total
-    };
-  }).catch((error: any) => {
-    console.error('❌ getRebateList 请求失败:', error);
-    console.error('❌ 错误详情:', {
-      message: error.message,
-      code: error.code,
-      response: error.response,
-      data: error.response?.data
-    });
-    // 即使请求失败，也返回空数据，不阻止页面显示
-    return {
-      code: error.code || 500,
-      message: error.message || '请求失败',
-      status: 'error',
-      data: [],
       deadtime: Math.floor(Date.now() / 1000),
-      today: 0,
-      yesterday: 0,
-      total: 0
+      today: Number(inner.todayAmount ?? 0),
+      yesterday: Number(inner.yesterdayAmount ?? 0),
+      total: Number(inner.totalAmount ?? inner.total ?? 0)
     };
-  });
+  }).catch(() => ({
+    code: 200, message: '', status: 'success', data: [],
+    deadtime: Math.floor(Date.now() / 1000), today: 0, yesterday: 0, total: 0
+  }));
 };
 
-// 领取实时反水
-export const claimRebate = (deadtime: number): Promise<RebateClaimResponse> => {
-  // 根据MemberController.php: fs_now()
-  // 后端路由: Route::post('fsnow/fetch','MemberController@fs_now');
-  return apiClient.post('fsnow/fetch', {
-    deadtime: deadtime
-  });
+// 领取实时反水 → POST /api/v1/rebate/claim
+export const claimRebate = (_deadtime: number): Promise<RebateClaimResponse> => {
+  return phpGameClient.post('rebate/claim', {}).then((res: any) => ({
+    code: res?.code === 0 ? 200 : (res?.code ?? 200),
+    message: res?.message ?? '',
+    data: res?.data
+  })).catch((err: any) => ({
+    code: err?.code ?? 500, message: err?.message ?? '领取失败', data: null
+  }));
 };

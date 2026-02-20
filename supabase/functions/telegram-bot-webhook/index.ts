@@ -18,7 +18,7 @@ const BIND_FLOW_EXPIRE_MINUTES = 10;
 // 默认欢迎文案与图片（从 sys_config 覆盖）
 const DEFAULT_WELCOME_TEXT = `欢迎使用B77娱乐 TG 投注机器人！
 
-在这里，您可以享受B77贵宾会提供的全方位娱乐体验，包括电子游艺、棋牌对战、体育竞猜、捕鱼等多种热门项目。
+在这里，您可以享受Vip贵宾会提供的全方位娱乐体验，包括电子游艺、棋牌对战、体育竞猜、捕鱼等多种热门项目。
 
 官网： www.beebet77.com`;
 const DEFAULT_WELCOME_IMAGE = Deno.env.get("TELEGRAM_WELCOME_IMAGE") || "https://www.beebet77.com/logo.png";

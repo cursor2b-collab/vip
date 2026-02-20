@@ -96,10 +96,11 @@ export const getMessageList = (params: MessageListRequest = {}): Promise<Message
   return (async () => {
     const useSupabase = USE_SUPABASE_AUTH || !!(await supabase.auth.getSession()).data?.session?.access_token;
     if (useSupabase) return getMessageListSupabase(params);
-    return apiClient.post('/member/message/list', {
-      page: params.page || 1,
-      limit: params.limit || 20,
-      type: params.type || 'receive'
+    return apiClient.get('message/list', {
+      params: { page: params.page || 1, pageSize: params.limit || 20 }
+    }).then((res: any) => {
+      const list = res?.data?.list ?? res?.data?.data ?? [];
+      return { ...res, data: { ...res.data, data: list, total: res?.data?.total ?? list.length } };
     });
   })();
 };
@@ -110,9 +111,11 @@ export const getSendMessageList = (params: MessageListRequest = {}): Promise<Mes
   if (useSupabase) {
     return Promise.resolve({ code: 200, message: '', data: { data: [], total: 0 } });
   }
-  return apiClient.post('/member/message/send_list', {
-    page: params.page || 1,
-    limit: params.limit || 20
+  return apiClient.get('message/list', {
+    params: { page: params.page || 1, pageSize: params.limit || 20 }
+  }).then((res: any) => {
+    const list = res?.data?.list ?? res?.data?.data ?? [];
+    return { ...res, data: { ...res.data, data: list, total: res?.data?.total ?? list.length } };
   });
 };
 
@@ -134,7 +137,7 @@ export const readMessage = (id: number): Promise<MessageResponse> => {
   return (async () => {
     const useSupabase = USE_SUPABASE_AUTH || !!(await supabase.auth.getSession()).data?.session?.access_token;
     if (useSupabase) return readMessageSupabase(id);
-    return apiClient.post('member/message/read', { id });
+    return apiClient.post('message/mark-read', { id });
   })();
 };
 
@@ -156,7 +159,7 @@ export const deleteMessage = (id: number): Promise<MessageResponse> => {
   return (async () => {
     const useSupabase = USE_SUPABASE_AUTH || !!(await supabase.auth.getSession()).data?.session?.access_token;
     if (useSupabase) return deleteMessageSupabase(id);
-    return apiClient.delete('member/message/delete', { data: { id } });
+    return apiClient.post('message/delete', { id });
   })();
 };
 

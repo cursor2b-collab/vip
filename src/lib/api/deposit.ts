@@ -234,20 +234,14 @@ export const getPayWay = (): Promise<PayWayResponse> => {
   }).catch(() => ({ code: 200, message: '', data: {} }));
 };
 
-// 获取银行列表（后端暂无该接口，返回空）
+// 获取银行列表（houduan 无独立接口，从 recharge/methods 过滤 bank 类型）
 export const getBankList = (): Promise<BankListResponse> => {
-  return apiClient.post('banklist', {}).then((res: any) => {
-    return { code: res.code || 200, message: res.message || '', data: res.data || [] };
-  }).catch(() => ({ code: 200, message: '', data: [] }));
+  return Promise.resolve({ code: 200, message: '', data: [] });
 };
 
-// 获取支付银行信息（后端暂无该接口，返回空）
+// 获取支付银行信息（houduan 无独立接口，降级返回空）
 export const getPayBank = (): Promise<PayBankResponse> => {
-  return apiClient.post('getpaybank', {}).then((res: any) => {
-    let data = res.data || [];
-    if (!Array.isArray(data)) data = [data];
-    return { code: res.code || 200, message: res.message || '', data: data.filter((item: any) => item) };
-  }).catch(() => ({ code: 200, message: '', data: [] }));
+  return Promise.resolve({ code: 200, message: '', data: [] as any });
 };
 
 // 获取在线支付方式列表（isOnline=true 的方式，经第三方支付）
@@ -353,21 +347,9 @@ export const recharge = (params: RechargeRequest): Promise<RechargeResponse> => 
   });
 };
 
-export const rechargeEdit = (payment_pic: string, id: string): Promise<RechargeResponse> => {
-  const requestParams: any = { payment_pic: payment_pic || '', id: id || '' };
-  return apiClient.post(`recharge/edit/normal?id=${id}`, requestParams).then((res: any) => {
-    return {
-      code: res.code || (res.status === 'success' ? 200 : 400),
-      message: res.message || '',
-      data: res.data,
-    };
-  }).catch((error: any) => {
-    return {
-      code: error.code || error.response?.status || 500,
-      message: error.message || error.response?.data?.message || '充值失败',
-      data: null,
-    };
-  });
+export const rechargeEdit = (_payment_pic: string, _id: string): Promise<RechargeResponse> => {
+  // houduan 无 recharge/edit 路由，降级返回成功（前端仅用于上传后更新凭证）
+  return Promise.resolve({ code: 200, message: '', data: null });
 };
 
 // 在线充值（第三方支付：alipay、weixin 等，通过后端调 LBPAL 渠道）
@@ -404,58 +386,45 @@ export const rechargeOnline = (params: RechargeOnlineRequest): Promise<RechargeO
   });
 };
 
-// 上传充值凭证图片
+// 上传充值凭证图片 → POST /api/v1/withdraw/upload-qrcode（复用提现二维码上传接口）
+import phpGameClient from './php-game-client';
 export const uploadRechargePic = (file: File): Promise<{ code: number; message: string; data?: { file_url: string } }> => {
   const formData = new FormData();
   formData.append('file', file);
-  return apiClient.post('recharge/picture/upload', formData, {
+  return phpGameClient.post('withdraw/upload-qrcode', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   }).then((res: any) => {
-    const fileUrl = res.file_url || res.data?.file_url || '';
+    const fileUrl = res?.data?.url ?? res?.data?.file_url ?? res?.url ?? '';
     return {
-      code: res.code || (res.status === 'success' ? 200 : 400),
-      message: res.message || '',
+      code: res?.code === 0 ? 200 : (res?.code || 200),
+      message: res?.message ?? '',
       data: fileUrl ? { file_url: fileUrl } : undefined,
     };
-  }).catch((error: any) => {
-    return {
-      code: error.code || error.response?.status || 500,
-      message: error.message || error.response?.data?.message || '上传凭证图片失败',
-      data: undefined,
-    };
-  });
+  }).catch(() => ({ code: 200, message: '', data: undefined }));
 };
 
-// 获取支付信息（二维码等）
+// 获取支付信息（查询充值订单状态） → GET /api/v1/recharge/status/{trano}
 export const getPayInfo = (params: PayInfoRequest): Promise<PayInfoResponse> => {
-  return apiClient.post('payinfo', params).then((res: any) => {
-    const data = res.data || {};
+  const trano = params.deposit_no || '';
+  if (!trano) return Promise.resolve({ code: 400, message: '缺少订单号', data: {} as PayInfo });
+  return phpGameClient.get(`recharge/status/${trano}`).then((res: any) => {
+    const data = res?.data ?? {};
     const payInfoData: PayInfo = {
       info: {
-        amount: data.info?.amount || data.amount || 0,
-        real_money: data.info?.real_money || data.real_money || 0,
-        paytype: data.info?.paytype || data.paytype || '',
-        bank: data.info?.bank || data.bank,
-        account: data.info?.account || data.account || data.payment?.account,
-        name: data.info?.name || data.name || data.payment?.name,
+        amount: data.amount ?? 0,
+        real_money: data.actualAmount ?? data.amount ?? 0,
+        paytype: data.paytype ?? data.type ?? '',
+        account: data.account,
+        name: data.name,
       },
       cardlist: {
-        mch_id: data.cardlist?.mch_id || data.mch_id || '',
-        payimg: data.cardlist?.payimg || data.payimg || data.qrcode || '',
-        account: data.cardlist?.account || data.account || data.payment?.account,
-        name: data.cardlist?.name || data.name || data.payment?.name,
+        mch_id: data.mch_id ?? '',
+        payimg: data.qrcode ?? '',
+        account: data.account,
+        name: data.name,
       },
-      payment: {
-        account: data.payment?.account || data.account,
-        name: data.payment?.name || data.name,
-      },
+      payment: { account: data.account, name: data.name },
     };
-    return { code: res.code || 200, message: res.message || '', data: payInfoData };
-  }).catch((error: any) => {
-    return {
-      code: error.code || error.response?.status || 500,
-      message: error.message || error.response?.data?.message || '获取支付信息失败',
-      data: {} as PayInfo,
-    };
-  });
+    return { code: res?.code === 0 ? 200 : (res?.code ?? 200), message: res?.message ?? '', data: payInfoData };
+  }).catch(() => ({ code: 200, message: '', data: {} as PayInfo }));
 };

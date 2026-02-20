@@ -3,10 +3,10 @@
  */
 import axios, { AxiosInstance, AxiosError } from 'axios';
 
-// API 基础URL：生产环境必须使用相对路径 /api，由 Vercel/ Nginx 代理到后端，避免 CORS
-// - 开发环境：Vite 代理 /api -> VITE_BACKEND_URL（见 vite.config.ts）
-// - 生产环境（如 Vercel）：务必使用 /api，由 vercel.json rewrites 代理到后端；不要设置 VITE_API_URL
-const API_BASE_URL = import.meta.env.PROD ? '/api' : (import.meta.env.VITE_API_URL ?? '/api');
+// 统一走 /api/v1 相对路径：
+// - 开发：Vite proxy 代理到 VITE_BACKEND_URL（见 vite.config.ts）
+// - 生产（Vercel）：vercel.json rewrites 代理到 https://admin.amjsvip.cc，避免跨域 CORS
+const API_BASE_URL = '/api/v1';
 
 // console.log('🔧 API配置:', {
 //   VITE_API_URL: import.meta.env.VITE_API_URL,
@@ -45,7 +45,7 @@ apiClient.interceptors.request.use(
     }
 
     // 游戏接口超时100秒
-    if (config.url?.includes('/game/login')) {
+    if (config.url?.includes('game/enter') || config.url?.includes('/game/login')) {
       config.timeout = 100000;
     }
 

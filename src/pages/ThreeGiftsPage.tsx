@@ -226,7 +226,7 @@ export default function ThreeGiftsPage() {
               <li className={styles.listItem}>
                 <div className={styles.num}></div>
                 <div>
-                  4 . 为了避免对文字的理解差异，B77贵宾会保留对以上方案的解释权。
+                  4 . 为了避免对文字的理解差异，Vip贵宾会保留对以上方案的解释权。
                 </div>
               </li>
             </ul>
