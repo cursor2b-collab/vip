@@ -650,7 +650,7 @@ export default function VipDetailPage() {
               <div
                 key={idx}
                 style={{
-                  backgroundImage: 'url(https://cy-747263170.imgix.net/default-casino-mini.CQlEkEv9.svg)',
+                  backgroundImage: 'url(/images/bg2.0427c97d.jpg)',
                   backgroundSize: 'cover',
                   backgroundPosition: 'center',
                   backgroundRepeat: 'no-repeat',
@@ -703,7 +703,7 @@ export default function VipDetailPage() {
         
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div style={{
-            backgroundImage: 'url(https://cy-747263170.imgix.net/default-sports.KM8Zs5_U.svg)',
+            backgroundImage: 'url(/images/login/blo66.png)',
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             backgroundRepeat: 'no-repeat',
@@ -748,7 +748,7 @@ export default function VipDetailPage() {
           </div>
 
           <div style={{
-            backgroundImage: 'url(https://cy-747263170.imgix.net/default-sports.KM8Zs5_U.svg)',
+            backgroundImage: 'url(/images/login/blo66.png)',
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             backgroundRepeat: 'no-repeat',
@@ -819,7 +819,7 @@ export default function VipDetailPage() {
           gap: '12px'
         }}>
           <div style={{
-            backgroundImage: 'url(https://cy-747263170.imgix.net/active-sports.CxIU50TW.svg)',
+            backgroundImage: 'url(/images/newimg/bg.f201b16c.png)',
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             backgroundRepeat: 'no-repeat',
@@ -850,7 +850,7 @@ export default function VipDetailPage() {
             }}>{monthUpgradeRequired.toFixed(2)}</p>
           </div>
           <div style={{
-            backgroundImage: 'url(https://cy-747263170.imgix.net/active-casino.D98ZVQ96.svg)',
+            backgroundImage: 'url(/images/newimg/bg.f201b16c.png)',
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             backgroundRepeat: 'no-repeat',
