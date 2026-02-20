@@ -13,6 +13,7 @@ interface FAQItem {
 export default function ServicePage() {
   const [servicePhone] = useState('4008426138');
   const [serviceUrl, setServiceUrl] = useState('');
+  const [kefuqq, setKefuqq] = useState('');
   const [faqList, setFaqList] = useState<FAQItem[]>([
     {
       question: '如何注册？',
@@ -42,21 +43,12 @@ export default function ServicePage() {
   ]);
 
   useEffect(() => {
-    // 获取客服链接（从管理后台设置）
-    const fetchServiceUrl = async () => {
-      try {
-        const res = await getServiceUrl();
-        
-        if (res.code === 200 && res.data && res.data.url) {
-          setServiceUrl(res.data.url);
-        } else {
-          setServiceUrl('');
-        }
-      } catch (err: any) {
-        setServiceUrl('');
+    getServiceUrl().then(res => {
+      if (res.code === 200) {
+        setServiceUrl(res.data?.url || '');
+        setKefuqq(res.data?.kefuqq || '');
       }
-    };
-    fetchServiceUrl();
+    }).catch(() => {});
   }, []);
 
   const toggleFaq = (index: number) => {
@@ -71,19 +63,37 @@ export default function ServicePage() {
     window.location.href = `tel:${servicePhone}`;
   };
 
+  // 构建带用户参数的客服链接（传递用户名和来源站点，方便客服识别）
+  const buildServiceUrl = (base: string): string => {
+    try {
+      const u = new URL(base);
+      const userName = localStorage.getItem('username') || localStorage.getItem('user_name') || localStorage.getItem('nickname') || '';
+      if (userName) u.searchParams.set('user_name', userName);
+      u.searchParams.set('site', window.location.hostname);
+      return u.toString();
+    } catch {
+      return base;
+    }
+  };
+
   const openOnlineService = () => {
+    const open = (url: string) => window.open(buildServiceUrl(url), '_blank');
     if (serviceUrl) {
-      window.open(serviceUrl, '_blank');
+      open(serviceUrl);
     } else {
-      alert('客服系统加载中，请稍后再试...');
-      // 尝试重新获取客服链接
       getServiceUrl().then(res => {
-        if (res.code === 200 && res.data && res.data.url) {
-          setServiceUrl(res.data.url);
-          window.open(res.data.url, '_blank');
-        }
-      }).catch(err => {
-      });
+        const url = res.data?.url || '';
+        if (url) { setServiceUrl(url); open(url); }
+        else { alert('暂无在线客服，请通过QQ或电话联系我们'); }
+      }).catch(() => { alert('暂无在线客服，请通过QQ或电话联系我们'); });
+    }
+  };
+
+  const openQQService = () => {
+    if (kefuqq) {
+      // 尝试打开 QQ 客服，支持 QQ 号和完整链接两种格式
+      const url = kefuqq.startsWith('http') ? kefuqq : `https://wpa.qq.com/msgrd?v=3&uin=${kefuqq}&site=qq&menu=yes`;
+      window.open(url, '_blank');
     }
   };
 
@@ -245,8 +255,9 @@ export default function ServicePage() {
             ))}
           </div>
 
-          {/* 服务选项 - 在线客服卡片 */}
-          <div style={{ marginTop: '30px' }}>
+          {/* 服务选项 */}
+          <div style={{ marginTop: '30px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {/* 在线客服 */}
             <div
               onClick={openOnlineService}
               style={{
@@ -276,13 +287,48 @@ export default function ServicePage() {
                 e.currentTarget.style.background = 'linear-gradient(135deg, rgba(255, 197, 62, 0.1), rgba(255, 197, 62, 0.05))';
               }}
             >
-              <img
-                src="https://www.xpj00000.vip/indexImg/icon_service.6b1fddf8.png"
-                alt="在线客服"
-                style={{ width: '32px', height: '32px', flexShrink: 0 }}
-              />
+              <span style={{ fontSize: '28px', flexShrink: 0 }}>💬</span>
               <span style={{ flex: 1 }}>24小时网页在线客服</span>
+              {serviceUrl ? (
+                <span style={{ fontSize: '12px', color: '#4caf50' }}>● 在线</span>
+              ) : (
+                <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>加载中...</span>
+              )}
             </div>
+
+            {/* QQ 客服（有配置时才显示） */}
+            {kefuqq && (
+              <div
+                onClick={openQQService}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '15px',
+                  padding: '20px',
+                  background: 'linear-gradient(135deg, rgba(18, 183, 245, 0.1), rgba(18, 183, 245, 0.05))',
+                  borderRadius: '12px',
+                  border: '1px solid rgba(18, 183, 245, 0.2)',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s',
+                  fontSize: '16px',
+                  color: '#fff',
+                  fontWeight: 500
+                }}
+                onMouseDown={(e) => {
+                  e.currentTarget.style.transform = 'scale(0.98)';
+                }}
+                onMouseUp={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)';
+                }}
+              >
+                <span style={{ fontSize: '28px', flexShrink: 0 }}>🐧</span>
+                <span style={{ flex: 1 }}>QQ 在线客服</span>
+                <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)' }}>{kefuqq}</span>
+              </div>
+            )}
           </div>
         </div>
       </div>

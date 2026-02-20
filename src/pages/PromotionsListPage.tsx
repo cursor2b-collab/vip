@@ -152,7 +152,7 @@ export default function PromotionsListPage() {
       {/* 页头背景图 + 标签栏 - 向上稍微一点 */}
       <div style={{ width: '100%', marginTop: '-320px', position: 'relative', overflow: 'visible', zIndex: 1 }}>
         <img
-          src="https://cy-747263170.imgix.net/header_bg.caff9723.png"
+          src="/images/login/header_bg.png"
           alt="背景"
           style={{ display: 'block', width: '100%', height: 'auto' }}
         />

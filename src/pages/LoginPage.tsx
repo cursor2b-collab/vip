@@ -248,7 +248,7 @@ export default function LoginPage() {
       }}>
         <img
           ref={secondImageRef}
-          src="https://www.xpj00000.vip/loginImg/header_bg.png"
+          src="/images/login/header_bg.png"
           alt="背景"
           style={{
             display: 'block',

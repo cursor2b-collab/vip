@@ -249,60 +249,31 @@ export interface ServiceUrlResponse {
   code: number;
   message: string;
   data: {
-    url?: string;
+    url?: string;       // 三方在线客服链接（kefuthree）
+    kefuqq?: string;   // QQ 客服号
   };
 }
 
 export const getServiceUrl = (): Promise<ServiceUrlResponse> => {
-  // 使用 getSystemConfig 接口获取客服链接，group=service 包含 service_link 配置
-  // 根据 wap 项目的实现，应该使用 group=service 而不是 group=system
-  return apiClient.get('config', {
-    params: { group: 'service' }
-  }).then((res: any) => {
-    // 从 system config 中获取 service_link
-    // 后端可能返回多种格式：
-    // 1. { code: 200, data: { data: { service_link: '...' } } }
-    // 2. { code: 200, data: { service_link: '...' } }
-    // 3. { status: 'success', code: 200, data: { data: { service_link: '...' } } }
-    let url = '';
-    
-    // 尝试多种数据结构
-    if (res.data) {
-      // 情况1: res.data.data 存在（嵌套结构）
-      if (res.data.data && typeof res.data.data === 'object') {
-        url = res.data.data.service_link || res.data.data.service_url || '';
-      }
-      // 情况2: res.data 直接包含 service_link
-      else if (typeof res.data === 'object' && res.data.service_link) {
-        url = res.data.service_link || res.data.service_url || '';
-      }
-      // 情况3: res.data 是字符串（直接返回链接）
-      else if (typeof res.data === 'string') {
-        url = res.data;
-      }
-    }
-    
-    // 如果还是空，尝试从 res 根级别获取
-    if (!url && res.service_link) {
-      url = res.service_link;
-    }
-    
+  // houduan 后端 GET /api/v1/config 返回 caipiao_setting 表中的配置
+  // 客服相关字段：kefuqq（QQ客服号）、kefuthree（三方在线客服链接）
+  return apiClient.get('config').then((res: any) => {
+    // apiClient 拦截器已返回 res.data，后端格式为 { code: 0, data: { kefuqq, kefuthree, ... } }
+    const payload = res?.data ?? res ?? {}
+    const url: string = String(payload.kefuthree || payload.service_link || payload.service_url || payload.kefu_url || '').trim()
+    const kefuqq: string = String(payload.kefuqq || '').trim()
     return {
-      code: (res.status === 'success' || res.code === 200) ? 200 : (res.code || 200),
-      message: res.message || '',
-      data: {
-        url: url
-      }
-    };
+      code: 200,
+      message: '',
+      data: { url, kefuqq }
+    }
   }).catch((err: any) => {
     return {
       code: err?.code || 500,
       message: err?.message || '获取客服链接失败',
-      data: {
-        url: ''
-      }
-    };
-  });
+      data: { url: '', kefuqq: '' }
+    }
+  })
 };
 
 /** 百家乐等标签下的单个展示位 */
