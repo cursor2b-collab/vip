@@ -9,14 +9,14 @@ export function LotteryContent() {
 
   // 彩票/棋牌区静态配置：2 个大图 + 6 个小图
   const staticImages = [
-    { id: 1, src: '/images/gaming/322a3681123c0df9550c8ad5c4568383.png_.webp', type: 'big', position: 0, platformName: 'KY', gameType: 6, gameCode: 'KY_830', title: '开元棋牌' },
-    { id: 2, src: '/images/gaming/cp2.png', type: 'big', position: 1, platformName: 'WL', gameType: 6, gameCode: '0', title: '瓦利棋牌' },
-    { id: 3, src: '/images/gaming/cp5.png', type: 'small', position: 2, platformName: 'KY', gameType: 6, gameCode: 'KY_890', title: '开元棋牌' },
-    { id: 4, src: '/images/gaming/cp8.png', type: 'small', position: 3, platformName: 'KY', gameType: 6, gameCode: 'KY_220', title: '开元棋牌' },
-    { id: 5, src: '/images/gaming/4fadab3a11a4a492f3a60a70a64b1188.png', type: 'small', position: 4, platformName: 'WL', gameType: 6, gameCode: '4', title: '瓦利棋牌' },
-    { id: 6, src: '/images/gaming/99ec13bf46733d4bad4489f03bee04d7.png', type: 'small', position: 5, platformName: 'WL', gameType: 6, gameCode: '3', title: '瓦利棋牌' },
-    { id: 7, src: '/images/gaming/cp3.png', type: 'small', position: 6, platformName: 'TCG', gameType: 4, gameCode: '0', title: '天成彩票' },
-    { id: 8, src: '/images/gaming/97c111212406b4c81383ef49551001d4.png_.webp', type: 'small', position: 7, platformName: 'DB7', gameType: 6, gameCode: '109', title: 'DB棋牌' },
+    { id: 1, src: '/images/gaming/322a3681123c0df9550c8ad5c4568383.png_.webp', type: 'big', position: 0, platformName: 'KY', gameType: 7, gameCode: 'KY_830', title: '开元棋牌' },
+    { id: 2, src: '/images/gaming/cp2.png', type: 'big', position: 1, platformName: 'WL_CHESS', gameType: 7, gameCode: '0', title: '瓦利棋牌' },
+    { id: 3, src: '/images/gaming/cp5.png', type: 'small', position: 2, platformName: 'KY', gameType: 7, gameCode: 'KY_890', title: '开元棋牌' },
+    { id: 4, src: '/images/gaming/cp8.png', type: 'small', position: 3, platformName: 'KY', gameType: 7, gameCode: 'KY_220', title: '开元棋牌' },
+    { id: 5, src: '/images/gaming/4fadab3a11a4a492f3a60a70a64b1188.png', type: 'small', position: 4, platformName: 'WL_CHESS', gameType: 7, gameCode: '4', title: '瓦利棋牌' },
+    { id: 6, src: '/images/gaming/99ec13bf46733d4bad4489f03bee04d7.png', type: 'small', position: 5, platformName: 'WL_CHESS', gameType: 7, gameCode: '3', title: '瓦利棋牌' },
+    { id: 7, src: '/images/gaming/cp3.png', type: 'small', position: 6, platformName: 'TCG', gameType: 3, gameCode: '0', title: '天成彩票' },
+    { id: 8, src: '/images/gaming/97c111212406b4c81383ef49551001d4.png_.webp', type: 'small', position: 7, platformName: 'DB7', gameType: 7, gameCode: '109', title: 'DB棋牌' },
   ];
 
   return (

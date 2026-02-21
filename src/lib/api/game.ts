@@ -435,13 +435,18 @@ export const getGameUrl = async (params: {
 
   // 美盛游戏接口（PHP 后端）。php-game-client 响应拦截器返回 res.data，故 res 即接口 body
   if (shouldUsePhpGameBackend()) {
-    const platform = mappedCode
+    // PHP 后端直接使用原始 api_name（不经过 platformMapping），因为后端自己的 game/platforms 已经返回了正确的平台代码
+    // platformMapping（PA→AG 等）仅用于旧版 bet-proxy 接口
+    const platform = apiCode
     const gameId = (params.gameCode && params.gameCode !== '0' && String(params.gameCode).trim()) || 'lobby'
     const isMobile = params.isMobile === 1 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
     const device = isMobile ? 'mobile' : 'pc'
+    // 传递 type 参数，让后端正确区分游戏大厅类型（live/slot/fishing 等）
+    const type = GAME_TYPE_TO_PHP[params.gameType] || 'live'
+    const lang = localStorage.getItem('ly_lang') || 'zh_cn'
     let res: { code?: number; message?: string; data?: { url?: string; openType?: string; balance?: string } }
     try {
-      res = await phpGameClient.post('game/enter', { platform, gameId, device }) as typeof res
+      res = await phpGameClient.post('game/enter', { platform, gameId, device, type, lang }) as typeof res
     } catch (e: any) {
       const body = e?.response?.data ?? e?.data
       const msg = (body?.message ?? body?.error ?? e?.message ?? '网络或接口异常') as string

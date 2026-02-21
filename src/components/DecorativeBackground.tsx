@@ -146,7 +146,7 @@ export function DecorativeBackground() {
             />
             <div 
               className="btn agqj"
-              onClick={() => openGame('AG', 1, '0')}
+              onClick={() => openGame('AG', 1, 'AG_BAC')}
             >
               <div className="btn-txt"></div>
             </div>
@@ -160,7 +160,7 @@ export function DecorativeBackground() {
             />
             <div 
               className="btn agin"
-              onClick={() => openGame('BG', 1, '0')}
+              onClick={() => openGame('BG', 1, 'AG_LBAC')}
             >
               <div className="btn-txt"></div>
             </div>

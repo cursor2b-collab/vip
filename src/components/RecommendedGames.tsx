@@ -15,7 +15,7 @@ const staticImages: Record<number, string> = {
 
 // PA 视讯（AG）首页推荐前 4 个：固定游戏与封面
 const PA_RECOMMEND_GAMES = [
-  { position: 0, size: 'small' as const, marginTop: false, gameCode: 'AG_BAC', name: '金球银球', image: '/images/ng/f7a09c5f491e769eedb7a7c5f7ac5dce.png_.png' },
+  { position: 0, size: 'small' as const, marginTop: false, gameCode: 'CBAC', name: '金球银球', image: '/images/ng/f7a09c5f491e769eedb7a7c5f7ac5dce.png_.png' },
   { position: 1, size: 'big' as const, marginTop: false, gameCode: 'AG_VDG', name: '官人坏坏百J乐', image: '/images/ng/026_45_1.png' },
   { position: 2, size: 'small' as const, marginTop: true, gameCode: 'AG_ROU', name: '捕鱼传说', image: '/images/ng/6b95ffd319c76b3cdd349fac4955a1b5.png_.webp.png' },
   { position: 3, size: 'small' as const, marginTop: true, gameCode: 'AG_SHB', name: '梭哈德州扑克', image: '/images/ng/030c8cdead42dfc7e997d9c6d76b4dbe.png_.webp' },
@@ -23,7 +23,7 @@ const PA_RECOMMEND_GAMES = [
 
 // 固定：FB 体育（位置 4）。前端约定 5=体育，getGameUrl 走美盛接口 game/enter
 const FIXED_SLOT_4_FB_SPORT = { position: 4, size: 'small' as const, marginTop: true, platformName: 'FB', gameType: 5, gameCode: '0', name: 'FB体育', image: '/images/ng/FB.png' };
-const FIXED_SLOT_7_PA_AG_DT = { position: 7, size: 'small' as const, marginTop: true, platformName: 'PA', gameType: 1, gameCode: 'AG_DT', name: 'AG_DT', image: '/images/ng/79073e2.avif' };
+const FIXED_SLOT_7_PA_AG_DT = { position: 7, size: 'small' as const, marginTop: true, platformName: 'AG', gameType: 1, gameCode: 'AG_DT', name: 'AG龙虎', image: '/images/ng/79073e2.avif' };
 
 export function RecommendedGames() {
   const { apiGamesList } = useGames();
@@ -40,14 +40,14 @@ export function RecommendedGames() {
       gameCode: string;
       name: string;
     }> = [];
-    // 真人视讯：前 4 个固定为 PA 视讯（AG）指定游戏与封面
+    // 真人视讯：前 4 个固定为 AG 视讯指定游戏与封面
     PA_RECOMMEND_GAMES.forEach((g) => {
       items.push({
         position: g.position,
         size: g.size,
         marginTop: g.marginTop,
         image: g.image,
-        platformName: 'PA',
+        platformName: 'AG',
         gameType: 1,
         gameCode: g.gameCode,
         name: g.name
