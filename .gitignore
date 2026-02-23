@@ -8,3 +8,6 @@ supabase/新游戏接口更新说明.md
 *.txt
 *.sql
 *.php
+
+# Local Netlify folder
+.netlify

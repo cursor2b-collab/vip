@@ -772,7 +772,7 @@ export function GameContent() {
                     {isLoading && (
                       <div className="game-banner-game-item-image-loading">
                         <div className="game-banner-game-item-image-placeholder">
-                          K8.COM<br/>凯发
+                          Vip贵宾会<br/>娱乐平台
                         </div>
                       </div>
                     )}

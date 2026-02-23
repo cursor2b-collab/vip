@@ -20,14 +20,14 @@ export function JackpotNews() {
           setNews(res.data);
         } else {
           setNews([
-            { title: '爆了爆了麻将胡了又爆大奖了，电子就玩凯发！', content: '', url: undefined },
-            { title: 'K8凯发域名更新通知（2025/09/26）', content: '', url: undefined },
+            { title: '爆了爆了麻将胡了又爆大奖了，电子就玩Vip贵宾会！', content: '', url: undefined },
+            { title: 'Vip贵宾会域名更新通知（2025/09/26）', content: '', url: undefined },
           ]);
         }
       } catch {
         setNews([
-          { title: '爆了爆了麻将胡了又爆大奖了，电子就玩凯发！', content: '', url: undefined },
-          { title: 'K8凯发域名更新通知（2025/09/26）', content: '', url: undefined },
+          { title: '爆了爆了麻将胡了又爆大奖了，电子就玩Vip贵宾会！', content: '', url: undefined },
+          { title: 'Vip贵宾会域名更新通知（2025/09/26）', content: '', url: undefined },
         ]);
       }
     };

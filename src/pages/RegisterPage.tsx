@@ -270,6 +270,22 @@ const languages: Language[] = [
       setToast({ show: true, type: 'error', message: t('passwordMismatchRegister') });
       return;
     }
+    if (!USE_SUPABASE_AUTH) {
+      const pwd = formData.password;
+      if (pwd.length < 6 || pwd.length > 16) {
+        setToast({ show: true, type: 'error', message: '密码长度须为6-16位' });
+        return;
+      }
+      const hasUpper = /[A-Z]/.test(pwd);
+      const hasLower = /[a-z]/.test(pwd);
+      const hasNumber = /\d/.test(pwd);
+      const hasSymbol = /[^A-Za-z0-9]/.test(pwd);
+      const score = (hasUpper ? 1 : 0) + (hasLower ? 1 : 0) + (hasNumber ? 1 : 0) + (hasSymbol ? 1 : 0);
+      if (score < 2) {
+        setToast({ show: true, type: 'error', message: '密码强度不足，需包含大写、小写、数字、符号中至少2种（例如：Abc123）' });
+        return;
+      }
+    }
     if (!USE_SUPABASE_AUTH && isInviteCodeRequired === '1' && !formData.inviteCode) {
       setToast({ show: true, type: 'error', message: t('inviteCode') + ' ' + t('isRequired') });
       return;
@@ -882,8 +898,8 @@ const languages: Language[] = [
                 onChange={handleChange}
                 onFocus={() => setFocusedInput('name')}
                 onBlur={() => setFocusedInput(null)}
-                placeholder="请输入B开头6-11位数字或字母账号"
-                maxLength={11}
+                placeholder="请输入2-12位字母或数字账号"
+                maxLength={12}
                 autoComplete="off"
                 className="input loginName"
                 style={{
@@ -936,7 +952,7 @@ const languages: Language[] = [
                 onChange={handleChange}
                 onFocus={() => setFocusedInput('password')}
                 onBlur={() => setFocusedInput(null)}
-                placeholder={registerTab === 'account' ? '请输入登录密码' : t('enterPassword')}
+                placeholder={registerTab === 'account' ? '6-16位，含字母+数字' : t('enterPassword')}
                 maxLength={32}
                 autoComplete="new-password"
                 className="input"
@@ -1136,7 +1152,7 @@ const languages: Language[] = [
           </button>
 
           <p style={{ textAlign: 'center', marginTop: '16px', fontSize: '14px', color: 'rgba(255,255,255,0.8)' }}>
-            已有凯发账户?
+            已有账户?
             <button type="button" onClick={() => navigate('/login')} style={{ background: 'none', border: 'none', color: '#ffc53e', cursor: 'pointer', padding: '0 4px', fontSize: '14px' }}>立即登录</button>
           </p>
 

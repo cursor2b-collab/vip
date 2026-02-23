@@ -4,6 +4,23 @@
   command = "npm run build"
   publish = "dist"
 
+# 21YunBox：将 Netlify 站点同步到中国大陆 CDN
+[[plugins]]
+  package = "@21yunbox/netlify-plugin-21yunbox-deploy-to-china-cdn"
+
+# 提取并内联关键 CSS，加快首屏渲染速度
+[[plugins]]
+  package = "netlify-plugin-inline-critical-css"
+
+  [plugins.inputs]
+    fileFilter = ["*.html"]
+    directoryFilter = ["!node_modules"]
+    extract = false
+    dimensions = [
+      { width = 414, height = 896 },
+      { width = 1920, height = 1080 }
+    ]
+
 # ────────────────────────────────────────────────────────────
 # API 代理（必须在 SPA 规则之前，Netlify 按顺序匹配）
 # 将 /api/v1/* 全部转发到 houduan 后端，解决跨域 CORS

@@ -224,7 +224,7 @@ export const register = async (data: RegisterRequest): Promise<AuthResponse> => 
     username: (data.name || '').trim(),
     password: data.password,
     cpassword: data.confirmPass || data.password,
-    invite_code: inviteCode || undefined,
+    reccode: inviteCode || undefined,   // 后端字段名为 reccode，不是 invite_code
     register_site: typeof window !== 'undefined' ? window.location.origin : ''
   }) as any;
   // 注册响应结构：{code:0, data:{token, username, user:{id, username, balance, ...}}}
@@ -398,7 +398,7 @@ export async function syncBackendAccount(name: string, password: string): Promis
       username: name.trim(),
       password,
       cpassword: password,
-      register_site: typeof window !== 'undefined' ? window.location.origin : ''
+      register_site: typeof window !== 'undefined' ? window.location.origin : '',
     });
   } catch {
     // 注册失败（如账号已存在）时继续尝试登录

@@ -14,6 +14,7 @@ import { NavigationTabs } from './components/NavigationTabs';
 import { ProfitLeaderboard } from './components/ProfitLeaderboard';
 import { Footer } from './components/Footer';
 import { DepositPage } from './components/DepositPage';
+import AppDownloadBanner from './components/AppDownloadBanner';
 import BottomNavigation from './components/BottomNavigation';
 import { CenteredBottomNav } from './components/CenteredBottomNav';
 import LoginPage from './pages/LoginPage';
@@ -55,18 +56,22 @@ import MobileLayout from './components/MobileLayout';
 // 首页组件 - 固定 Header + 固定底部导航 + 仅内容区滚动
 function HomePage() {
   return (
-    <MobileLayout
-      header={<Header />}
-      bottomNav={<CenteredBottomNav><BottomNavigation /></CenteredBottomNav>}
-    >
-      {/* 首页公告弹窗：每个用户单日首次访问显示，关闭后今日不再显示 */}
-      <NoticePopup />
-      <BannerCarousel />
-      <JackpotNews />
-      <NavigationTabs />
-      <ProfitLeaderboard />
-      <Footer />
-    </MobileLayout>
+    <>
+      <MobileLayout
+        header={<Header />}
+        bottomNav={<CenteredBottomNav><BottomNavigation /></CenteredBottomNav>}
+      >
+        {/* 首页公告弹窗：每个用户单日首次访问显示，关闭后今日不再显示 */}
+        <NoticePopup />
+        <BannerCarousel />
+        <JackpotNews />
+        <NavigationTabs />
+        <ProfitLeaderboard />
+        <Footer />
+      </MobileLayout>
+      {/* APP下载横幅：固定在底部导航栏上方 */}
+      <AppDownloadBanner />
+    </>
   );
 }
 
